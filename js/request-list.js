@@ -194,5 +194,5 @@ function renderRequestTable(records) {
 // ナビゲーション
 // ==========================
 function goToAdmin() {
-    showToast('管理者画面は準備中です', 'info');
+    window.location.href = 'admin.html';
 }

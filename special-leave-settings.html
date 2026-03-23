@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特別休暇設定 - SNK_start</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #007bb5;
+            --bg-color: #f8f9fa;
+            --border-color: #ccc;
+            --text-main: #333;
+            --btn-confirm: #800000; /* Dark red from screenshot */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            color: var(--text-main);
+            background-color: #fff;
+            padding: 10px;
+        }
+
+        /* Header Area */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .logo-dots {
+            display: grid;
+            grid-template-columns: repeat(3, 7px);
+            gap: 2px;
+        }
+
+        .logo-dots span {
+            width: 7px;
+            height: 7px;
+            background-color: var(--primary-blue);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 20px;
+        }
+
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: #007bb5;
+        }
+
+        .action-item svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .action-label {
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        /* Table Area */
+        .settings-table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .settings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 1000px;
+        }
+
+        .settings-table th {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            background-color: #fff;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .settings-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            vertical-align: middle;
+        }
+
+        .row-id { width: 40px; text-align: center; }
+        .row-name { width: 220px; }
+
+        .form-input {
+            width: 100%;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+            font-size: 0.85rem;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .btn-confirm {
+            background-color: var(--btn-confirm);
+            color: white;
+            padding: 4px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .btn-confirm:hover {
+            opacity: 0.9;
+        }
+
+        /* Cell Specifics */
+        .center { text-align: center; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header class="page-header">
+        <a href="admin.html" class="logo-section">
+            <div class="logo-dots">
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+            </div>
+        </a>
+
+        <div class="header-actions">
+            <div class="action-item">
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <div class="action-label">検索/実行</div>
+            </div>
+            <div class="action-item">
+                <svg viewBox="0 0 24 24"><path d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                <div class="action-label">新規作成</div>
+            </div>
+            <div class="action-item">
+                <svg viewBox="0 0 24 24"><path d="M7 11v2h10v-2H7zm5-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                <div class="action-label">削除</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Settings Table -->
+    <div class="settings-table-container">
+        <table class="settings-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">ID</th>
+                    <th style="width: 200px;">特別休暇名</th>
+                    <th style="width: 140px;">半休申請</th>
+                    <th style="width: 140px;">時間給申請</th>
+                    <th style="width: 100px;">有給無給区分</th>
+                    <th style="width: 140px;">出勤率算定：出勤日数</th>
+                    <th style="width: 140px;">出勤率算定：全労働日</th>
+                    <th style="width: 80px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Row 1 -->
+                <tr>
+                    <td class="center">1</td>
+                    <td><input type="text" class="form-input" value="特別休暇"></td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="half_1" checked> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="half_1"> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="time_1" checked> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="time_1"> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="paid_1" checked> 有給</label>
+                            <label class="radio-item"><input type="radio" name="paid_1"> 無給</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_work_1" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_work_1"> 含まない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_total_1" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_total_1"> 含まない</label>
+                        </div>
+                    </td>
+                    <td class="center"><button class="btn-confirm">確定</button></td>
+                </tr>
+                <!-- Row 2 -->
+                <tr>
+                    <td class="center">2</td>
+                    <td><input type="text" class="form-input" value="子の看護休暇(1人)"></td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="half_2" checked> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="half_2"> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="time_2" checked> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="time_2"> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="paid_2" checked> 有給</label>
+                            <label class="radio-item"><input type="radio" name="paid_2"> 無給</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_work_2" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_work_2"> 含まない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_total_2" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_total_2"> 含まない</label>
+                        </div>
+                    </td>
+                    <td class="center"><button class="btn-confirm">確定</button></td>
+                </tr>
+                <!-- Row 3 -->
+                <tr>
+                    <td class="center">3</td>
+                    <td><input type="text" class="form-input" value="子の看護休暇(2人以上)"></td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="half_3" checked> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="half_3"> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="time_3" checked> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="time_3"> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="paid_3" checked> 有給</label>
+                            <label class="radio-item"><input type="radio" name="paid_3"> 無給</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_work_3" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_work_3"> 含まない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_total_3" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_total_3"> 含まない</label>
+                        </div>
+                    </td>
+                    <td class="center"><button class="btn-confirm">確定</button></td>
+                </tr>
+                <!-- Row 4 -->
+                <tr>
+                    <td class="center">4</td>
+                    <td><input type="text" class="form-input" value="慶弔休暇"></td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="half_4"> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="half_4" checked> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="time_4"> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="time_4" checked> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="paid_4" checked> 有給</label>
+                            <label class="radio-item"><input type="radio" name="paid_4"> 無給</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_work_4" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_work_4"> 含まない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_total_4" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_total_4"> 含まない</label>
+                        </div>
+                    </td>
+                    <td class="center"><button class="btn-confirm">確定</button></td>
+                </tr>
+                <!-- Row 5 -->
+                <tr>
+                    <td class="center">5</td>
+                    <td><input type="text" class="form-input" value="感染症（就労不能業務の際）"></td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="half_5"> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="half_5" checked> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="time_5" checked> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="time_5"> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="paid_5" checked> 有給</label>
+                            <label class="radio-item"><input type="radio" name="paid_5"> 無給</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_work_5" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_work_5"> 含まない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_total_5" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_total_5"> 含まない</label>
+                        </div>
+                    </td>
+                    <td class="center"><button class="btn-confirm">確定</button></td>
+                </tr>
+                <!-- Row 6 -->
+                <tr>
+                    <td class="center">6</td>
+                    <td><input type="text" class="form-input" value="欠勤"></td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="half_6" checked> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="half_6"> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="time_6" checked> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="time_6"> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="paid_6"> 有給</label>
+                            <label class="radio-item"><input type="radio" name="paid_6" checked> 無給</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_work_6"> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_work_6" checked> 含まない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_total_6"> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_total_6" checked> 含まない</label>
+                        </div>
+                    </td>
+                    <td class="center"><button class="btn-confirm">確定</button></td>
+                </tr>
+                <!-- Row 7 -->
+                <tr>
+                    <td class="center">7</td>
+                    <td><input type="text" class="form-input" value="産休"></td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="half_7"> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="half_7" checked> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="time_7"> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="time_7" checked> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="paid_7"> 有給</label>
+                            <label class="radio-item"><input type="radio" name="paid_7" checked> 無給</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_work_7"> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_work_7" checked> 含まない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_total_7" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_total_7"> 含まない</label>
+                        </div>
+                    </td>
+                    <td class="center"><button class="btn-confirm">確定</button></td>
+                </tr>
+                <!-- Row 8 -->
+                <tr>
+                    <td class="center">8</td>
+                    <td><input type="text" class="form-input" value="育休"></td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="half_8"> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="half_8" checked> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="time_8"> 利用できる</label>
+                            <label class="radio-item"><input type="radio" name="time_8" checked> 利用できない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="paid_8"> 有給</label>
+                            <label class="radio-item"><input type="radio" name="paid_8" checked> 無給</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_work_8"> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_work_8" checked> 含まない</label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="att_total_8" checked> 含む</label>
+                            <label class="radio-item"><input type="radio" name="att_total_8"> 含まない</label>
+                        </div>
+                    </td>
+                    <td class="center"><button class="btn-confirm">確定</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

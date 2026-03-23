@@ -4,705 +4,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASサービス - 管理画面</title>
-    <meta name="description" content="ATOM ASサービス申込管理画面">
+    <title>管理者画面 - SNK_start</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        html {
-            visibility: hidden;
-            opacity: 0;
+        .admin-page {
+            background-color: #fff;
+            min-height: 100vh;
         }
-    </style>
-    <!-- FOUC（未ログイン時の画面チラつき）防止の完全版 -->
-    <script>
-        if (sessionStorage.getItem('as_logged_in') !== 'true') {
-            window.location.replace('login.html');
-        } else {
-            document.documentElement.style.visibility = 'visible';
-            document.documentElement.style.opacity = '1';
-        }
-    </script>
-    <style>
-        /* 管理画面固有スタイル */
+
         .admin-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 14px 24px;
-            background: var(--primary-gradient);
-            color: #fff;
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-            margin-bottom: 0;
+            padding: 12px 24px;
+            border-bottom: 1px solid #eee;
         }
 
         .admin-header-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #444;
         }
 
-        .admin-header-left img {
-            height: 30px;
+        .admin-header-center {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-left: 40px;
         }
 
-        .admin-header h1 {
-            font-size: 1rem;
-            font-weight: 700;
-            margin: 0;
+        .admin-greeting {
+            font-size: 0.95rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .btn-dakoku-top {
+            background-color: #005b8a;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-dakoku-top:hover {
+            background-color: #004566;
+            color: white;
         }
 
         .admin-header-right {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* Notification Bar */
+        .notification-area {
+            padding: 15px 24px;
+            background-color: #fff9f9;
+            border-bottom: 1px solid #ffe6e6;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .notification-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 0.8rem;
-        }
-
-        .admin-user-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-
-        .btn-logout {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #fff;
-            padding: 4px 14px;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: var(--transition);
-        }
-
-        .btn-logout:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* 統計カード */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 14px;
-            padding: 20px 24px;
-            background: var(--bg-white);
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .stat-card {
-            text-align: center;
-            padding: 16px 12px;
-            background: var(--bg-field);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-light);
-        }
-
-        .stat-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--primary-red);
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-label);
-            margin-top: 4px;
-        }
-
-        /* ツールバー */
-        .admin-toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 14px 24px;
-            background: var(--bg-white);
-            border-bottom: 1px solid var(--border-light);
-            flex-wrap: wrap;
-        }
-
-        .admin-toolbar input[type="text"] {
-            padding: 6px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            font-size: 0.8rem;
-            width: 250px;
-            font-family: var(--font-family);
-        }
-
-        .admin-toolbar select {
-            padding: 6px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            font-size: 0.8rem;
-            font-family: var(--font-family);
-        }
-
-        /* テーブル */
-        .admin-table-wrap {
-            background: var(--bg-white);
-            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-            overflow-x: auto;
-        }
-
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-        }
-
-        .admin-table thead th {
-            background: var(--accent-pink);
-            color: var(--text-label);
-            font-weight: 700;
-            padding: 10px 14px;
-            text-align: left;
-            border-bottom: 2px solid var(--border-color);
-            white-space: nowrap;
-            position: sticky;
-            top: 0;
-        }
-
-        .admin-table tbody tr {
-            transition: var(--transition);
-        }
-
-        .admin-table tbody tr:hover {
-            background: rgba(231, 76, 60, 0.04);
-        }
-
-        .admin-table td {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--border-light);
-            color: var(--text-dark);
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .status-new {
-            background: #eaf7ed;
-            color: #27ae60;
-        }
-
-        .status-1st {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .status-review {
-            background: #fff8e1;
-            color: #f39c12;
-        }
-
-        .status-done {
-            background: #e8eaf6;
-            color: #5c6bc0;
-        }
-
-        .btn-detail {
-            background: var(--primary-gradient);
-            color: #fff;
-            border: none;
-            padding: 4px 14px;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: var(--transition);
-        }
-
-        .btn-detail:hover {
-            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
-            transform: translateY(-1px);
-        }
-
-        /* 詳細モーダル */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 40px 20px;
-            overflow-y: auto;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--bg-white);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            width: 100%;
-            max-width: 700px;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 24px;
-            background: var(--primary-gradient);
-            color: #fff;
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-        }
-
-        .modal-header h2 {
-            margin: 0;
+            gap: 10px;
             font-size: 0.95rem;
         }
 
-        .modal-close {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 1.2rem;
+        .notification-label {
+            background-color: #ff5252;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .notification-count {
+            color: #d32f2f;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin: 0 4px;
+        }
+
+        .un-clocked-list {
+            display: flex;
+            gap: 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .un-clocked-name {
+            color: #d32f2f;
+            font-weight: 500;
+            text-decoration: underline;
+        }
+
+        .btn-pink-large {
+            background-color: #ebb3c9;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .btn-pink-large:hover {
+            background-color: #d48a9a;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .admin-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 60px;
+            padding-bottom: 60px;
+        }
+
+        .admin-icon-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .admin-icon-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1.1;
+            border-radius: 4px;
+            color: white;
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: var(--radius);
-            transition: var(--transition);
+            text-decoration: none;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .admin-icon-btn:hover {
+            background-color: #999 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        .modal-body {
-            padding: 20px 24px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-
-        .modal-footer {
-            padding: 14px 24px;
-            border-top: 1px solid var(--border-light);
-            text-align: right;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state-icon {
-            font-size: 3rem;
+        .admin-icon-btn svg {
+            width: 64px;
+            height: 64px;
+            fill: currentColor;
             margin-bottom: 12px;
         }
 
-        .empty-state-text {
-            font-size: 0.9rem;
+        .admin-icon-btn span {
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.3;
         }
+
+        /* Colors based on screenshot */
+        .color-blue { background-color: #92c4e0; }
+        .color-pink { background-color: #ebb3c9; }
+
     </style>
 </head>
 
 <body>
-    <div class="page-wrapper">
-
-        <div class="admin-header">
-            <div class="admin-header-left">
-                <img src="assets/logo.svg" alt="ATOM" style="filter:brightness(10);">
-                <h1 id="pageMainTitle">ASサービス 申込一覧</h1>
+    <div class="admin-page">
+        <!-- Header -->
+        <header class="admin-header">
+            <div style="display: flex; align-items: center; flex: 1;">
+                <div class="admin-header-left">
+                    <div class="snk-logo-grid">
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                    </div>
+                    SNK_start
+                </div>
+                <div class="admin-header-center">
+                    <div class="admin-greeting">こんにちは！ <span style="font-weight: bold;">管理者さん！</span></div>
+                    <a href="index.html" class="btn-dakoku-top">打刻画面に戻る</a>
+                </div>
             </div>
             <div class="admin-header-right">
-                <span class="admin-user-badge" id="userRoleBadge">ユーザー</span>
-                <button class="btn-logout" onclick="handleLogout()">ログアウト</button>
+                <a href="dashboard.html" class="btn-pink-large">従業員画面へ戻る</a>
+            </div>
+        </header>
+
+        <!-- Notification Area -->
+        <div class="notification-area">
+            <div class="notification-item">
+                <span class="notification-label">申請承認</span>
+                <span>所属施設の未承認申請が <span class="notification-count">5</span> 件あります</span>
+            </div>
+            <div class="notification-item" style="border-left: 1px solid #eee; padding-left: 40px;">
+                <span class="notification-label" style="background-color: #fb8c00;">未出勤</span>
+                <div class="un-clocked-list">
+                    <span>出勤予定を超過：</span>
+                    <span class="un-clocked-name">佐藤 健太</span>,
+                    <span class="un-clocked-name">田中 舞</span>
+                </div>
             </div>
         </div>
 
-        <!-- 統計カード -->
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-label">総申込数</div>
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Blue Section -->
+            <div class="admin-icon-grid">
+                <!-- 従業員マスタ -->
+                <a href="employee-master.html" class="admin-icon-btn color-blue">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <span>従業員マスタ</span>
+                </a>
+                <!-- 従業員一覧 -->
+                <a href="employee-list.html" class="admin-icon-btn color-blue">
+                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    <span>従業員一覧</span>
+                </a>
+                <!-- 辞令 -->
+                <div class="admin-icon-btn color-blue">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    <span>辞令</span>
+                </div>
+                <!-- 休日 -->
+                <div class="admin-icon-btn color-blue">
+                    <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                    <span>休日</span>
+                </div>
+                <!-- 労働条件通知書 -->
+                <div class="admin-icon-btn color-blue">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 14h-3v3h-2v-3H8v-2h3v-3h2v3h3v2zm-3-7V3.5L18.5 9H13z"/></svg>
+                    <span>労働条件通知書</span>
+                </div>
+                <!-- 雇用契約書 -->
+                <div class="admin-icon-btn color-blue">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 14h-3v3h-2v-3H8v-2h3v-3h2v3h3v2zm-3-7V3.5L18.5 9H13z"/></svg>
+                    <span>雇用契約書</span>
+                </div>
+                <!-- 内示 -->
+                <div class="admin-icon-btn color-blue">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    <span>内示</span>
+                </div>
+                <!-- アカウント設定 -->
+                <a href="account-settings.html" class="admin-icon-btn color-blue">
+                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    <span>アカウント設定</span>
+                </a>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="statNew">0</div>
-                <div class="stat-label">新規</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="statDone">0</div>
-                <div class="stat-label">完了</div>
+
+            <!-- Pink Section -->
+            <div class="admin-icon-grid">
+                <!-- 実績 -->
+                <a href="performance-monthly.html" class="admin-icon-btn color-pink">
+                    <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 4v4h16V4H4zm0 8h8v8H4v-8zm10 0h6v8h-6v-8z"/></svg>
+                    <span>実績</span>
+                </a>
+                <!-- スケジュール -->
+                <div class="admin-icon-btn color-pink">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                    <span>スケジュール</span>
+                </div>
+                <!-- 申請承認 -->
+                <a href="application-approval.html" class="admin-icon-btn color-pink">
+                    <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                    <span>申請承認</span>
+                </a>
+                <!-- 出力 -->
+                <div class="admin-icon-btn color-pink">
+                    <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                    <span>出力</span>
+                </div>
+                <!-- 打刻グループ -->
+                <div class="admin-icon-btn color-pink">
+                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    <span>打刻グループ</span>
+                </div>
+                <!-- スケジュール設定 -->
+                <div class="admin-icon-btn color-pink">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                    <span>スケジュール設定</span>
+                </div>
+                <!-- 有休管理 -->
+                <div class="admin-icon-btn color-pink">
+                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    <span>有休管理</span>
+                </div>
+                <!-- 特別休暇設定 -->
+                <a href="special-leave-settings.html" class="admin-icon-btn color-pink">
+                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    <span>特別休暇設定</span>
+                </a>
             </div>
         </div>
-
-        <div class="admin-toolbar">
-            <div style="display:flex; gap:12px; align-items:center;">
-                <input type="text" id="searchInput" placeholder="🔍 法人名・担当者名で検索..." oninput="filterTable()">
-                <select id="statusFilter" onchange="filterTable()">
-                    <option value="">すべてのステータス</option>
-                    <option value="1次申込完了">1次申込完了</option>
-                    <option value="申込完了">申込完了</option>
-                    <option value="新規">新規</option>
-                    <option value="完了">完了</option>
-                </select>
-            </div>
-            <button class="btn btn-primary" onclick="window.location.href='index.html'"
-                style="padding:8px 20px; font-size:0.8rem;">＋ 新規申込</button>
-        </div>
-
-        <!-- テーブル -->
-        <div class="admin-table-wrap">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>申込日</th>
-                        <th>法人名/屋号</th>
-                        <th>担当者名</th>
-                        <th>電話番号</th>
-                        <th>ステータス</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="applicationTableBody">
-                </tbody>
-            </table>
-            <div class="empty-state" id="emptyState" style="display:none;">
-                <div class="empty-state-icon">📋</div>
-                <div class="empty-state-text">申込データがありません</div>
-            </div>
-        </div>
-
     </div>
-
-    <!-- 詳細モーダル -->
-    <div class="modal-overlay" id="detailModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">申込詳細</h2>
-                <button class="modal-close" onclick="closeModal()">✕</button>
-            </div>
-            <div class="modal-body" id="modalBody"></div>
-            <div class="modal-footer" id="modalFooter">
-                <select id="statusSelect"
-                    style="padding:6px 12px; border:1px solid var(--border-color); border-radius:var(--radius); font-size:0.8rem; margin-right:8px;">
-                    <option value="1次申込完了">1次申込完了</option>
-                    <option value="申込完了">申込完了</option>
-                    <option value="完了">完了</option>
-                </select>
-                <button class="btn btn-primary" onclick="updateStatus()"
-                    style="padding:6px 20px; font-size:0.8rem;">ステータス更新</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
-
-    <script>
-        // ログインチェック
-        const loggedIn = sessionStorage.getItem('as_logged_in') === 'true';
-        const role = sessionStorage.getItem('as_role');
-        if (!loggedIn || !role) {
-            window.location.href = 'login.html';
-        }
-
-        // LocalStorageからデータ読み込み・保存
-        function loadApplications() {
-            return JSON.parse(localStorage.getItem('as_applications') || '[]');
-        }
-        function saveApplications(data) {
-            localStorage.setItem('as_applications', JSON.stringify(data));
-        }
-
-        let currentAppId = null;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderTable();
-            updateStats();
-        });
-
-        function handleLogout() {
-            sessionStorage.clear();
-            window.location.href = 'login.html';
-        }
-
-        function updateStats() {
-            const apps = loadApplications();
-            const role = sessionStorage.getItem('as_role');
-            const currentUser = sessionStorage.getItem('as_login_user');
-
-            const myApps = role === 'admin' ? apps : apps.filter(a => a.submittedBy === currentUser);
-
-            document.getElementById('statTotal').textContent = myApps.length;
-            document.getElementById('statNew').textContent = myApps.filter(a => a.status === '1次申込完了').length;
-            document.getElementById('statDone').textContent = myApps.filter(a => a.status === '完了').length;
-
-            const badge = document.getElementById('userRoleBadge');
-            if (role === 'admin') {
-                badge.textContent = '管理者';
-                badge.style.background = '#ffd700';
-                badge.style.color = '#000';
-            } else {
-                badge.textContent = 'ユーザー: ' + currentUser;
-            }
-        }
-
-        function renderTable() {
-            const apps = loadApplications();
-            const role = sessionStorage.getItem('as_role');
-            const currentUser = sessionStorage.getItem('as_login_user');
-            const search = document.getElementById('searchInput').value.trim().toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            const tbody = document.getElementById('applicationTableBody');
-            const emptyState = document.getElementById('emptyState');
-
-            let filtered = apps.filter(app => {
-                // Role filter
-                if (role !== 'admin' && app.submittedBy !== currentUser) return false;
-
-                const cName = (app.companyName || '').toLowerCase();
-                const ctName = (app.contactName || '').toLowerCase();
-                const matchSearch = !search || cName.includes(search) || ctName.includes(search);
-                const matchStatus = !statusFilter || app.status === statusFilter;
-                return matchSearch && matchStatus;
-            });
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.style.display = '';
-                return;
-            }
-
-            emptyState.style.display = 'none';
-            tbody.innerHTML = filtered.map((app, i) => {
-                const statusClass =
-                    app.status === '1次申込完了' ? 'status-1st' :
-                        app.status === '申込完了' ? 'status-new' : 'status-done';
-
-                let actionHtml = `<button class="btn-detail" onclick="openDetail('${app.id}')">詳細</button>`;
-                if (app.status === '1次申込完了') {
-                    actionHtml += ` <button class="btn btn-secondary" onclick="startSecondStage('${app.id}')" style="padding:4px 10px; font-size:0.7rem; margin-left:5px;">2次申込へ</button>`;
-                }
-
-                return `<tr>
-                    <td>${i + 1}</td>
-                    <td>${app.applicationDate || '―'}</td>
-                    <td><strong>${app.companyName || '―'}</strong></td>
-                    <td>${app.contactName || '―'}</td>
-                    <td>${app.phone || '―'}</td>
-                    <td><span class="status-badge ${statusClass}">${app.status}</span></td>
-                    <td>${actionHtml}</td>
-                </tr>`;
-            }).join('');
-        }
-
-        function startSecondStage(id) {
-            window.location.href = `index.html?id=${id}&stage=2`;
-        }
-
-        function filterTable() { renderTable(); }
-
-        function openDetail(id) {
-            const apps = loadApplications();
-            const app = apps.find(a => a.id === id);
-            if (!app) return;
-            currentAppId = id;
-
-            document.getElementById('modalTitle').textContent = `申込詳細 - ${app.companyName || ''}`;
-            document.getElementById('statusSelect').value = app.status;
-
-            // 管理者以外はステータス更新エリアを非表示
-            const role = sessionStorage.getItem('as_role');
-            document.getElementById('modalFooter').style.display = (role === 'admin') ? '' : 'none';
-
-            const h = (label, value) => `<tr><th>${label}</th><td>${value || '―'}</td></tr>`;
-            let html = '';
-
-            // ①基本情報
-            html += '<div class="confirm-section-title">①お申込み情報</div>';
-            html += '<table class="confirm-table">';
-            html += h('申込日', app.applicationDate);
-            html += h('申込種別', app.applicationType);
-            html += h('法人名/屋号', app.companyName);
-            html += h('法人名カナ', app.companyKana);
-            html += h('代表者名', app.representativeName);
-            html += h('担当者名', app.contactName);
-            html += h('電話番号', app.phone);
-            html += h('FAX', app.fax);
-            html += h('メールアドレス', app.email);
-            html += h('住所', [app.prefecture, app.city, app.town, app.block, app.additionalAddress].filter(Boolean).join(' '));
-            html += '</table>';
-
-            // ②店舗情報
-            if (app.stores && app.stores.length > 0) {
-                html += '<div class="confirm-section-title">②店舗情報</div>';
-                app.stores.forEach((s, i) => {
-                    html += '<table class="confirm-table">';
-                    html += h(`店舗${i + 1}`, s.storeName);
-                    html += h('フリガナ', s.storeKana);
-                    html += h('電話番号', s.storePhone);
-                    html += h('住所', [s.storePostal, s.storePrefecture, s.storeCity, s.storeTown].filter(Boolean).join(' '));
-                    html += '</table>';
-                });
-            }
-
-            // ③請求情報
-            if (app.billing) {
-                html += '<div class="confirm-section-title">③請求情報</div>';
-                html += '<table class="confirm-table">';
-                const bills = [];
-                if (app.billing.billingCompany) bills.push('法人');
-                if (app.billing.billingStore) bills.push('店舗');
-                if (app.billing.billingExisting) bills.push('既存');
-                html += h('請求先', bills.join('、') || '―');
-                html += '</table>';
-            }
-
-            // ④商品情報
-            if (app.products && app.products.length > 0) {
-                html += '<div class="confirm-section-title">④商品情報</div>';
-                app.products.forEach((p, i) => {
-                    html += '<table class="confirm-table">';
-                    html += h(`商品${i + 1}`, p.name);
-                    html += h('単価', (p.unitPrice || 0).toLocaleString() + '円');
-                    html += h('数量', p.quantity);
-                    html += h('備考', p.remark);
-                    html += '</table>';
-                });
-            }
-
-            // ⑤AS契約情報
-            if (app.contract && app.contract.rows && app.contract.rows.length > 0) {
-                html += '<div class="confirm-section-title">⑤AS契約情報</div>';
-                app.contract.rows.forEach((c, i) => {
-                    html += '<table class="confirm-table">';
-                    html += h('サービス名', c.service);
-                    html += h('無料期間', c.freePeriod);
-                    html += h('契約期間', c.contractPeriod);
-                    html += h('月額単価', (c.unitPrice || 0).toLocaleString() + '円');
-                    html += h('数量', c.quantity);
-                    html += h('備考', c.remark);
-                    html += '</table>';
-                });
-            }
-
-            // ⑥契約物件金額
-            if (app.propertyAmount) {
-                html += '<div class="confirm-section-title">⑥契約物件金額</div>';
-                html += '<table class="confirm-table">';
-                html += h('販売物件金額', (app.propertyAmount.propertyPrice || 0).toLocaleString() + '円');
-                const pm = [];
-                if (app.propertyAmount.payCash) pm.push('現金一括');
-                if (app.propertyAmount.payInstallment) pm.push('割賦');
-                html += h('支払方法', pm.join('、') || '―');
-                html += h('初回分割金額', (app.propertyAmount.firstInstallment || 0).toLocaleString() + '円');
-                html += h('2回目以降', (app.propertyAmount.subsequentInstallment || 0).toLocaleString() + '円');
-                html += h('支払い回数', app.propertyAmount.installmentCount ? app.propertyAmount.installmentCount + '回' : '―');
-                html += '</table>';
-            }
-
-            // ⑦ドメイン情報
-            if (app.domain) {
-                html += '<div class="confirm-section-title">⑦ドメイン情報</div>';
-                html += '<table class="confirm-table">';
-                html += h('メールアドレス', app.domain.email);
-                html += h('登記年月日', app.domain.registrationDate);
-                const dc = [];
-                if (app.domain.domainNew) dc.push('新規');
-                if (app.domain.domainTransfer) dc.push('移行');
-                html += h('ドメイン区分', dc.join('、') || '―');
-                html += h('ドメイン', app.domain.domainName);
-                if (app.domain.tld) {
-                    const tlds = [];
-                    if (app.domain.tld.com) tlds.push('.com');
-                    if (app.domain.tld.net) tlds.push('.net');
-                    if (app.domain.tld.info) tlds.push('.info');
-                    if (app.domain.tld.jp) tlds.push('.jp');
-                    if (app.domain.tld.other) tlds.push('その他: ' + (app.domain.tld.otherValue || ''));
-                    html += h('TLD', tlds.join('、') || '―');
-                }
-                html += h('英文表記', app.domain.englishName);
-                const sf = [];
-                if (app.domain.suffixCoLtd) sf.push('.co.ltd');
-                if (app.domain.suffixInc) sf.push('.inc');
-                html += h('英文表記種別', sf.join('、') || '―');
-                html += '</table>';
-            }
-
-            // ⑧ 申込担当者情報
-            html += '<div class="confirm-section-title">⑧ 申込担当者情報</div>';
-            html += '<table class="confirm-table">';
-            html += h('営業担当者氏名', app.salesRepName);
-            html += h('営業担当者メールアドレス', app.salesRepEmail);
-            html += h('お客様氏名', app.signerName);
-            html += h('お客様メールアドレス', app.signerEmail);
-            html += '</table>';
-
-            // ⑨ 添付書類
-            html += '<div class="confirm-section-title">⑨ 添付書類</div>';
-            html += '<table class="confirm-table">';
-            html += h('ファイル名', app.pdfFileName);
-            html += '</table>';
-
-            document.getElementById('modalBody').innerHTML = html;
-            document.getElementById('detailModal').classList.add('show');
-        }
-
-        function closeModal() {
-            document.getElementById('detailModal').classList.remove('show');
-            currentAppId = null;
-        }
-
-        function updateStatus() {
-            if (!currentAppId) return;
-            const newStatus = document.getElementById('statusSelect').value;
-            const apps = loadApplications();
-            const app = apps.find(a => a.id === currentAppId);
-            if (app) {
-                app.status = newStatus;
-                saveApplications(apps);
-                renderTable();
-                updateStats();
-                showToast(`ステータスを「${newStatus}」に更新しました`, 'success');
-                closeModal();
-            }
-        }
-
-        document.getElementById('detailModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('detailModal')) closeModal();
-        });
-
-        function showToast(msg, type) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.className = 'toast ' + (type || '');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-    </script>
 </body>
-
 </html>

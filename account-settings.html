@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNK_アカウント管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #92c4e0;
+            --text-dark: #555;
+            --text-light: #777;
+            --border-color: #eee;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            color: var(--text-dark);
+            background-color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .account-header {
+            background-color: var(--primary-blue);
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            text-decoration: none;
+            margin-right: 60px;
+        }
+
+        .logo-dots {
+            display: grid;
+            grid-template-columns: repeat(3, 8px);
+            gap: 2px;
+        }
+
+        .logo-dots span {
+            width: 8px;
+            height: 8px;
+            background-color: #0078a8; /* Darker blue for dots */
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .action-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .action-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            margin-bottom: 2px;
+        }
+
+        /* Search icon is slightly different */
+        .action-icon.search-icon svg {
+            stroke-width: 2.5;
+            stroke: #0078a8;
+        }
+
+        /* Main Content */
+        .account-main {
+            flex: 1;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .account-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            min-width: 1200px;
+        }
+
+        .account-table th, .account-table td {
+            padding: 12px 20px;
+            text-align: left;
+        }
+
+        .account-table th {
+            background-color: var(--primary-blue);
+            color: var(--text-dark);
+            font-weight: normal;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .account-table td {
+            color: #444;
+            border-bottom: 1px solid transparent; /* default no border line for normal rows */
+        }
+        
+        .account-table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .account-table tbody tr:hover {
+            background-color: #f5faff;
+        }
+
+        /* Selected row style (based on the first row in screenshot) */
+        .account-table tbody tr.selected td {
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .account-table tbody tr.selected td:first-child {
+            border-left: 1px solid #ddd;
+        }
+        .account-table tbody tr.selected td:last-child {
+            border-right: 1px solid #ddd;
+        }
+
+        .email-text {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="account-header">
+        <a href="admin.html" class="header-logo">
+            <div class="logo-dots">
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+            </div>
+            SNK_アカウント管理
+        </a>
+        
+        <div class="header-actions">
+            <!-- 検索/実行 -->
+            <div class="action-icon search-icon">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16" y2="16"/></svg>
+                <span style="color: #0078a8; font-weight: bold;">検索/実行</span>
+            </div>
+            <!-- 新規作成 -->
+            <div class="action-icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <span>新規作成</span>
+            </div>
+            <!-- 削除 -->
+            <div class="action-icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <span>削除</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="account-main">
+        <table class="account-table">
+            <thead>
+                <tr>
+                    <th style="padding-left: 30px;">レコード番号</th>
+                    <th>アカウントコード</th>
+                    <th>アカウント名</th>
+                    <th>パスワード</th>
+                    <th>人事アカウント種別</th>
+                    <th>勤怠アカウント種別</th>
+                    <th>メールアドレス</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 行1: Selected -->
+                <tr class="selected">
+                    <td style="padding-left: 30px;">S000001</td>
+                    <td>1000105</td>
+                    <td>test太郎</td>
+                    <td>testtarou</td>
+                    <td>システム管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text">k-ishikawa@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000005</td>
+                    <td>1000104</td>
+                    <td>test次郎</td>
+                    <td>testjirou</td>
+                    <td>管理者</td>
+                    <td>グループ管理者</td>
+                    <td class="email-text">k-ishikawa@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000010</td>
+                    <td>1000103</td>
+                    <td>test三郎</td>
+                    <td>testsaburou</td>
+                    <td>管理者閲覧制限</td>
+                    <td>勤怠従業員権限</td>
+                    <td class="email-text">k-ishikawa@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000011</td>
+                    <td>508</td>
+                    <td>宮本 一仁</td>
+                    <td>sanuki0508</td>
+                    <td>システム管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text">k-miyamoto@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000013</td>
+                    <td>24</td>
+                    <td>三好 晃弘</td>
+                    <td>sanuki0024</td>
+                    <td>システム管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text">a-miyoshi@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000014</td>
+                    <td>18</td>
+                    <td>池田 博子</td>
+                    <td>sanuki0018</td>
+                    <td>システム管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text">h-ikeda@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000015</td>
+                    <td>77</td>
+                    <td>高岡 優子</td>
+                    <td>sanuki0077</td>
+                    <td>システム管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text">y-takaoka@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000016</td>
+                    <td>1303</td>
+                    <td>田中 元</td>
+                    <td>sanuki1303</td>
+                    <td>システム管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text">h-tanaka@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000017</td>
+                    <td>157</td>
+                    <td>武田 順子</td>
+                    <td>sanuki0157</td>
+                    <td>管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text">j-takeda@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000018</td>
+                    <td>368</td>
+                    <td>渡辺 直美</td>
+                    <td>sanuki0368</td>
+                    <td>管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text">n-watanabe@sanuki-sha.or.jp</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000019</td>
+                    <td>337</td>
+                    <td>広瀬 敬</td>
+                    <td>337337</td>
+                    <td>管理者閲覧制限</td>
+                    <td>全体管理者</td>
+                    <td class="email-text"></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000020</td>
+                    <td>1298</td>
+                    <td>松本 静</td>
+                    <td>12981298</td>
+                    <td>権限無</td>
+                    <td>一般ユーザー</td>
+                    <td class="email-text"></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000021</td>
+                    <td>661</td>
+                    <td>溝淵 明恵</td>
+                    <td>661661</td>
+                    <td>権限無</td>
+                    <td>一般ユーザー</td>
+                    <td class="email-text"></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000022</td>
+                    <td>1002</td>
+                    <td>藤崎 一憲</td>
+                    <td>10021002</td>
+                    <td>権限無</td>
+                    <td>一般ユーザー</td>
+                    <td class="email-text"></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000023</td>
+                    <td>1011</td>
+                    <td>中尾 ちなみ</td>
+                    <td>10111011</td>
+                    <td>権限無</td>
+                    <td>一般ユーザー</td>
+                    <td class="email-text"></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000024</td>
+                    <td>489</td>
+                    <td>松下 英行</td>
+                    <td>489489</td>
+                    <td>管理者閲覧制限</td>
+                    <td>全体管理者</td>
+                    <td class="email-text"></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000025</td>
+                    <td>admin</td>
+                    <td>フル権限</td>
+                    <td>admin</td>
+                    <td>システム管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text"></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000026</td>
+                    <td>1332</td>
+                    <td>ブイティ ファン</td>
+                    <td>13321332</td>
+                    <td>管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text"></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000027</td>
+                    <td>1000232</td>
+                    <td>管理者</td>
+                    <td>Kouiki01</td>
+                    <td>システム管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text"></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 30px;">S000028</td>
+                    <td>admin</td>
+                    <td>管理者</td>
+                    <td>01230123</td>
+                    <td>システム管理者</td>
+                    <td>全体管理者</td>
+                    <td class="email-text"></td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+
+</body>
+</html>

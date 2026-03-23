@@ -221,7 +221,7 @@ function submitHoliday() {
 // ナビゲーション
 // ==========================
 function goToAdmin() {
-    showToast('管理者画面は準備中です', 'info');
+    window.location.href = 'admin.html';
 }
 
 function goToAttendance() {

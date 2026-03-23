@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNK_従業員一覧</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #92c4e0;
+            --header-dark-blue: #005b8a;
+            --text-main: #333;
+            --table-header-bg: #80bcdb; /* slightly darker light-blue for table header */
+            --border-color: #ddd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            color: var(--text-main);
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .emp-list-header {
+            background-color: var(--primary-blue);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--header-dark-blue);
+            text-decoration: none;
+            margin-right: 40px;
+        }
+
+        .logo-dots {
+            display: grid;
+            grid-template-columns: repeat(3, 7px);
+            gap: 2px;
+        }
+
+        .logo-dots span {
+            width: 7px;
+            height: 7px;
+            background-color: var(--header-dark-blue);
+        }
+
+        .record-count {
+            font-size: 0.9rem;
+            color: var(--header-dark-blue);
+            margin-right: auto; /* Pushes the next items to the right */
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-right: 20px;
+        }
+
+        .action-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7rem;
+            color: var(--header-dark-blue);
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .action-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+            margin-bottom: 2px;
+        }
+
+        /* Main Content */
+        .emp-list-main {
+            flex: 1;
+            padding: 0;
+            overflow: auto;
+            background-color: #fff;
+        }
+
+        table.list-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 1800px; /* Force wide table for horizontal scrolling if needed */
+        }
+
+        .list-table th, .list-table td {
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .list-table th {
+            background-color: var(--table-header-bg);
+            color: white;
+            font-weight: normal;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .list-table td {
+            color: #333;
+            height: 30px;
+        }
+        
+        /* The indicator column */
+        .col-indicator {
+            width: 30px;
+            text-align: center !important;
+            padding: 0 !important;
+            color: #333;
+        }
+
+        .row-active .col-indicator {
+            color: #000;
+            font-size: 14px;
+        }
+
+        .list-table tbody tr:hover {
+            background-color: #f0f7fb;
+        }
+
+        .text-center { text-align: center !important; }
+
+    </style>
+</head>
+<body>
+
+    <header class="emp-list-header">
+        <a href="admin.html" class="header-logo">
+            <div class="logo-dots">
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+            </div>
+            SNK_従業員一覧
+        </a>
+
+        <div class="record-count">
+            1 / 563
+        </div>
+        
+        <div class="header-actions">
+            <!-- 検索/実行 -->
+            <div class="action-icon">
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <span>検索/実行</span>
+            </div>
+            <!-- 全レコード表示 -->
+            <div class="action-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span>全レコード表示</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="emp-list-main">
+        <table class="list-table">
+            <thead>
+                <tr>
+                    <th class="col-indicator"></th>
+                    <th>基本情報:社員番号</th>
+                    <th>氏名_氏</th>
+                    <th>氏名_名</th>
+                    <th>入社年月日</th>
+                    <th>在籍区分</th>
+                    <th>郵便番号</th>
+                    <th>住所</th>
+                    <th>就業場所1</th>
+                    <th>就業場所2</th>
+                    <th>就業場所3</th>
+                    <th>業務内容1</th>
+                    <th>業務内容2</th>
+                    <th>業務内容3</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 行1 -->
+                <tr class="row-active">
+                    <td class="col-indicator">▶</td>
+                    <td></td>
+                    <td>十河</td>
+                    <td>愛美</td>
+                    <td>2022/03/01</td>
+                    <td>退社</td>
+                    <td>760-0079</td>
+                    <td>香川県高松市松縄町1126番地2</td>
+                    <td>老人介護支援センター新</td>
+                    <td></td>
+                    <td></td>
+                    <td>介護支援専門員業務</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行2 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td></td>
+                    <td>木村</td>
+                    <td>圭介</td>
+                    <td>2019/8/1</td>
+                    <td>退社</td>
+                    <td>761-0111</td>
+                    <td>香川県高松市屋島東町576</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行3 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>1</td>
+                    <td>さぬき</td>
+                    <td>太郎</td>
+                    <td>2020/09/01</td>
+                    <td>在籍</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行4 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>2</td>
+                    <td>たまも</td>
+                    <td>太郎</td>
+                    <td>2020/09/01</td>
+                    <td>在籍</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行5 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>3</td>
+                    <td>ばんちょう</td>
+                    <td>太郎</td>
+                    <td>2020/09/01</td>
+                    <td>在籍</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行6 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>4</td>
+                    <td>森</td>
+                    <td>管理</td>
+                    <td>2024/04/01</td>
+                    <td>退職</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行7 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>18</td>
+                    <td>池田</td>
+                    <td>明子</td>
+                    <td>1987/04/01</td>
+                    <td>在籍</td>
+                    <td>761-8042</td>
+                    <td>香川県高松市御厩町1327-3</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行8 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>22</td>
+                    <td>狭間</td>
+                    <td>清治</td>
+                    <td>1988/01/01</td>
+                    <td>退職</td>
+                    <td>761-1706</td>
+                    <td>香川県高松市香川町川東上2155-1</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行9 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>24</td>
+                    <td>三好</td>
+                    <td>貴弘</td>
+                    <td>1988/04/01</td>
+                    <td>在籍</td>
+                    <td>761-8078</td>
+                    <td>香川県高松市仏生山町甲2391-4</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行10 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>48</td>
+                    <td>田中</td>
+                    <td>滋子</td>
+                    <td>1993/04/01</td>
+                    <td>退職</td>
+                    <td>760-0073</td>
+                    <td>香川県高松市栗林町2-16-3</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行11 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>50</td>
+                    <td>永原</td>
+                    <td>知美</td>
+                    <td>1993/04/01</td>
+                    <td>在籍</td>
+                    <td>761-0443</td>
+                    <td>香川県高松市川島東町813-13</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行12 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>51</td>
+                    <td>北田</td>
+                    <td>理江</td>
+                    <td>1994/04/01</td>
+                    <td>在籍</td>
+                    <td>769-0103</td>
+                    <td>香川県高松市国分寺町福家甲3500</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行13 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>59</td>
+                    <td>作花</td>
+                    <td>二三事業</td>
+                    <td>1995/04/01</td>
+                    <td>退職</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行14 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>66</td>
+                    <td>筒井</td>
+                    <td>智子</td>
+                    <td>1996/04/01</td>
+                    <td>在籍</td>
+                    <td>760-0004</td>
+                    <td>香川県高松市西宝町2丁目844-57ク</td>
+                    <td>特別養護老人ホームさぬき</td>
+                    <td></td>
+                    <td></td>
+                    <td>支援員業務</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- 行15 -->
+                <tr>
+                    <td class="col-indicator">▶</td>
+                    <td>77</td>
+                    <td>西岡</td>
+                    <td>誓子</td>
+                    <td>1997/04/01</td>
+                    <td>在籍</td>
+                    <td>761-8046</td>
+                    <td>香川県高松市川部町16-3</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+
+</body>
+</html>
