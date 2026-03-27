@@ -51,22 +51,24 @@ function loadMonthData() {
     if (!monthSelector) return;
 
     const [year, month] = monthSelector.value.split('-').map(Number);
-
-    if (CONFIG.USE_MOCK) {
-        const data = MockData.getMonthlyAttendance(year, month);
-        renderAttendanceTable(data.records);
-        renderSummary(data.summary);
-    } else {
-        Api.get(`/attendance/monthly?year=${year}&month=${month}`).then(data => {
-            if (data) {
-                renderAttendanceTable(data.records);
-                renderSummary(data.summary);
-            }
-        }).catch(err => {
-            console.error('月次データ取得エラー:', err);
-            showToast('データの取得に失敗しました', 'error');
-        });
+    const user = Auth.getUser();
+    
+    if (!user) {
+        showToast('ユーザー情報が見つかりません', 'error');
+        return;
     }
+
+    const employeeId = user.id || user.employeeId;
+
+    Api.get(`/attendance/monthly/${employeeId}/${year}/${month}`).then(data => {
+        if (data) {
+            renderAttendanceTable(data.records);
+            renderSummary(data.summary);
+        }
+    }).catch(err => {
+        console.error('月次データ取得エラー:', err);
+        showToast('実データの取得に失敗しました', 'error');
+    });
 }
 
 // ==========================

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>月次実績 - SNK_start</title>
+    <title>月次スケジュール - SNK_start</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,7 +12,6 @@
             --border-color: #ccc;
             --text-main: #333;
             --holiday-blue: #e1f5fe;
-            --special-pink: #fce4ec;
             --header-gray: #f2f2f2;
         }
 
@@ -44,6 +43,7 @@
             font-size: 1.4rem;
             font-weight: bold;
             color: #333;
+            text-decoration: none;
         }
 
         .logo-dots {
@@ -75,18 +75,18 @@
         }
 
         .filter-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: bold;
             color: #555;
             text-align: center;
         }
 
         .filter-input {
-            height: 32px;
+            height: 30px;
             padding: 0 8px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             background-color: #fff;
         }
 
@@ -95,7 +95,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 40px;
             margin: 20px 0;
             position: relative;
         }
@@ -112,13 +112,13 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .btn-calc {
-            background-color: #00bcd4;
+        .btn-csv {
+            background-color: #007bb5;
             color: white;
-            padding: 4px 12px;
+            padding: 6px 16px;
             border: none;
             border-radius: 4px;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             font-weight: bold;
             cursor: pointer;
         }
@@ -137,28 +137,30 @@
             cursor: pointer;
         }
 
-        /* Table Container */
-        .performance-table-wrapper {
+        /* Table Container - Optimized for 31 days */
+        .schedule-table-wrapper {
             width: 100%;
             overflow: auto;
-            max-height: calc(100vh - 200px);
+            max-height: calc(100vh - 220px);
             border: 1px solid var(--border-color);
         }
 
-        .performance-table {
+        .schedule-table {
             border-collapse: collapse;
-            font-size: 0.65rem; /* Smaller font to fit more */
+            font-size: 0.6rem;
             text-align: center;
             background-color: #fff;
             width: 100%;
-            table-layout: fixed; /* Fix layout to ensure widths are respected */
+            table-layout: fixed;
         }
 
-        .performance-table th, .performance-table td {
+        .schedule-table th, .schedule-table td {
             border: 1px solid var(--border-color);
-            padding: 0;
+            padding: 2px;
             height: 38px;
-            min-width: 45px; /* Ensure enough width for dates */
+            overflow: hidden;
+            word-break: break-all;
+            min-width: 45px;
             width: 45px;
         }
 
@@ -168,10 +170,13 @@
             left: 0;
             z-index: 10;
             background-color: #fff;
-            width: 100px !important; /* Fixed width for name */
+            width: 100px !important;
             min-width: 100px !important;
             padding: 0 4px !important;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.05); /* Subtle shadow for depth */
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-align: left;
         }
 
         .sticky-header {
@@ -183,7 +188,7 @@
 
         .sticky-header-row-2 {
             position: sticky;
-            top: 36px;
+            top: 38px;
             z-index: 20;
             background-color: #fff;
         }
@@ -198,69 +203,75 @@
             color: #0d47a1;
         }
 
-        .status-special {
-            background-color: var(--special-pink);
-            color: #c2185b;
-        }
-
-        .time-range {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            line-height: 1.1;
-            letter-spacing: -0.5px; /* Slightly tighter text */
-        }
-
         .day-sat { color: #007bb5; }
         .day-sun { color: #d32f2f; }
 
-        .emp-name {
-            font-weight: bold;
-            text-align: left;
-            padding-left: 10px;
-        }
-
-        /* Styling for specific placeholders from screenshot */
-        .cell-content {
-            width: 100%;
+        .item-name, .item-time, .item-abbr {
             height: 100%;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            padding: 2px;
+            align-items: center;
+            line-height: 1.1;
+        }
+
+        /* Toggling logic */
+        body.mode-time .item-name, body.mode-time .item-abbr { display: none; }
+        body.mode-name .item-time, body.mode-name .item-abbr { display: none; }
+        body.mode-abbr .item-name, body.mode-abbr .item-time { display: none; }
+        body.mode-pos .item-name, body.mode-pos .item-time, body.mode-pos .item-abbr { display: none; }
+
+        .time-start, .time-end {
+            font-weight: bold;
+            font-size: 0.65rem;
+        }
+
+        .item-abbr {
+             font-size: 0.85rem;
+             font-weight: bold;
         }
 
     </style>
 </head>
-<body>
+<body class="mode-name">
 
     <!-- Header Section -->
     <header class="page-header">
-        <a href="admin.html" style="text-decoration:none; color:inherit; display: flex; align-items: center; gap: 10px;" class="logo-section">
+        <a href="admin.html" class="logo-section">
             <div class="logo-dots">
                 <span></span><span></span><span></span>
                 <span></span><span></span><span></span>
                 <span></span><span></span><span></span>
             </div>
-            月次実績
+            月次スケジュール
         </a>
 
         <div class="filters-container">
             <div class="filter-item">
                 <div class="filter-label">表示月</div>
-                <input type="text" class="filter-input" placeholder="2026年03月" style="width: 120px;">
+                <input type="text" id="filterMonth" class="filter-input" value="2024年03月" style="width: 120px;">
             </div>
             <div class="filter-item">
                 <div class="filter-label">打刻グループ名</div>
-                <input type="text" class="filter-input" style="width: 140px;">
+                <select id="filterGroup" class="filter-input" style="width: 140px;">
+                    <option value="">全て</option>
+                </select>
             </div>
             <div class="filter-item">
                 <div class="filter-label">表示区分</div>
-                <input type="text" class="filter-input" style="width: 100px;">
+                <select id="filterCategory" class="filter-input" style="width: 120px;">
+                    <option value="">全て</option>
+                    <option value="メイン">メイン打刻グループ</option>
+                    <option value="サブ">サブ打刻グループ</option>
+                </select>
             </div>
             <div class="filter-item">
                 <div class="filter-label">在職区分</div>
-                <input type="text" class="filter-input" style="width: 100px;">
+                <select id="filterStatus" class="filter-input" style="width: 100px;">
+                    <option value="在職">在職</option>
+                    <option value="退職">退職</option>
+                    <option value="">全て</option>
+                </select>
             </div>
         </div>
     </header>
@@ -268,68 +279,111 @@
     <!-- Buttons Bar -->
     <div class="action-bar">
         <button class="btn-display">表示</button>
-        <button class="btn-calc">表示用計算</button>
         
         <div class="mode-selection">
-            <label><input type="radio" name="mode" checked> 実績編集</label>
-            <label><input type="radio" name="mode"> 休日休暇取得</label>
+            <label><input type="radio" name="mode" value="time"> 時間</label>
+            <label><input type="radio" name="mode" value="name" checked> スケジュール名</label>
+            <label><input type="radio" name="mode" value="abbr"> 略称</label>
+            <label><input type="radio" name="mode" value="position"> 職位</label>
         </div>
+
+        <button class="btn-csv">CSVインポート</button>
     </div>
 
-    <!-- Main Performance Table -->
-    <div class="performance-table-wrapper">
-        <table class="performance-table" id="performanceTable">
+    <!-- Main Schedule Table -->
+    <div class="schedule-table-wrapper">
+        <table class="schedule-table" id="scheduleTable">
             <thead>
-                <tr class="sticky-header" id="headerDates1">
+                <tr class="sticky-header" id="headerDays1">
                     <th class="sticky-col corner-cell" rowspan="2"></th>
+                    <!-- Generated dynamically -->
                 </tr>
-                <tr class="sticky-header-row-2" id="headerDates2">
+                <tr class="sticky-header-row-2" id="headerDays2">
+                    <!-- Generated dynamically -->
                 </tr>
             </thead>
-            <tbody id="performanceBody">
+            <tbody id="scheduleBody">
+                <!-- Employee Rows generated dynamically -->
             </tbody>
         </table>
     </div>
 
     <script src="js/app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const displayMonthInput = document.querySelector('.filter-input');
+        document.addEventListener('DOMContentLoaded', async () => {
+            const displayMonthInput = document.getElementById('filterMonth');
             
             // 初回表示はデータがある2024年03月に設定
-            if (!displayMonthInput.value || displayMonthInput.value === "2026年03月") {
+            if (!displayMonthInput.value || displayMonthInput.value === "2026年03月" || displayMonthInput.value === "2024年03月") {
                  displayMonthInput.value = "2024年03月";
             }
 
-            document.querySelector('.btn-display').addEventListener('click', loadPerformanceData);
-            loadPerformanceData();
+            // 打刻グループのマスター取得（セレクトボックス作成）
+            try {
+                const bases = await Api.get('/attendance/bases');
+                const groupSelect = document.getElementById('filterGroup');
+                bases.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.name;
+                    opt.textContent = b.name;
+                    groupSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Failed to load bases:', e);
+            }
+
+            document.querySelector('.btn-display').addEventListener('click', loadScheduleData);
+            loadScheduleData();
+
+            // Toggle logic for display modes
+            const radios = document.querySelectorAll('input[name="mode"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    document.body.className = `mode-${e.target.value === 'position' ? 'pos' : e.target.value}`;
+                });
+            });
         });
 
-        async function loadPerformanceData() {
-            const displayMonthInput = document.querySelector('.filter-input').value;
+        async function loadScheduleData() {
+            const displayMonthInput = document.getElementById('filterMonth').value;
             const match = displayMonthInput.match(/(\d{4})年(\d{2})月/);
             if (!match) return;
 
             const year = parseInt(match[1]);
             const month = parseInt(match[2]);
 
+            // フィルタ条件を取得
+            const groupName = document.getElementById('filterGroup').value;
+            const displayCategory = document.getElementById('filterCategory').value;
+            const employmentStatus = document.getElementById('filterStatus').value;
+
             try {
-                const data = await Api.get(`/attendance/performance/matrix/${year}/${month}`);
+                // クエリパラメータを構築
+                let url = `/attendance/performance/matrix/${year}/${month}`;
+                const params = new URLSearchParams();
+                if (groupName) params.append('groupName', groupName);
+                if (displayCategory) params.append('displayCategory', displayCategory);
+                if (employmentStatus) params.append('employmentStatus', employmentStatus);
+                
+                const qs = params.toString();
+                if (qs) url += `?${qs}`;
+
+                const data = await Api.get(url);
                 renderGrid(year, month, data);
             } catch (err) {
-                console.error('Failed to load performance data:', err);
+                console.error('Failed to load schedule data:', err);
             }
         }
 
         function renderGrid(year, month, data) {
-            const head1 = document.getElementById('headerDates1');
-            const head2 = document.getElementById('headerDates2');
-            const tbody = document.getElementById('performanceBody');
+            const head1 = document.getElementById('headerDays1');
+            const head2 = document.getElementById('headerDays2');
+            const tbody = document.getElementById('scheduleBody');
 
             tbody.innerHTML = '';
-            // Row 1 には rowspan=2 の角セルがあるため、それ以外のヘッダーを消す
+            // Row 1 には角セルがあるため、それ以外を消す
             while (head1.children.length > 1) head1.removeChild(head1.lastChild);
-            // Row 2 は角セルを skip するので空にする
+            // Row 2 は角セルを skip する
             head2.innerHTML = '';
 
             const daysInMonth = new Date(year, month, 0).getDate();
@@ -353,34 +407,34 @@
             }
 
             if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td class="sticky-col"></td><td colspan="${daysInMonth}" style="padding:20px;">データがありません</td></tr>`;
+                tbody.innerHTML = `<tr><td class="sticky-col"></td><td colspan="${daysInMonth}" style="padding:20px;">スケジュールデータがありません</td></tr>`;
                 return;
             }
 
             data.forEach(emp => {
                 const tr = document.createElement('tr');
                 const nameTd = document.createElement('td');
-                nameTd.className = 'sticky-col emp-name';
+                nameTd.className = 'sticky-col';
                 nameTd.textContent = emp.employeeName;
                 tr.appendChild(nameTd);
 
                 emp.records.forEach(dayRecord => {
                     const td = document.createElement('td');
-                    if (dayRecord.holiday) {
+                    if (dayRecord.schedule === '所定休日' || dayRecord.holiday) {
                         td.className = 'status-holiday';
-                        td.innerHTML = `<div class="cell-content">${dayRecord.holiday}</div>`;
-                    } else if (dayRecord.schedule && dayRecord.schedule.includes('明け')) {
-                        td.className = 'status-special';
-                        td.innerHTML = `<div class="cell-content">明け</div>`;
-                    } else if (dayRecord.workHours) {
-                        const parts = dayRecord.workHours.split(' ～ ');
-                        td.innerHTML = `<div class="time-range"><span>${parts[0]}</span><span>${parts[1] || ''}</span></div>`;
-                    } else {
-                        td.innerHTML = `<div class="cell-content">-</div>`;
                     }
+
+                    const innerHtml = `
+                        <div class="item-name">${dayRecord.schedule || ''}</div>
+                        <div class="item-time">
+                            <span class="time-start">${dayRecord.clockInTime || ''}</span>
+                            <span class="time-end">${dayRecord.clockOutTime || ''}</span>
+                        </div>
+                        <div class="item-abbr">${dayRecord.schedule ? dayRecord.schedule.charAt(0) : ''}</div>
+                    `;
+                    td.innerHTML = innerHtml;
                     tr.appendChild(td);
                 });
-
                 tbody.appendChild(tr);
             });
         }

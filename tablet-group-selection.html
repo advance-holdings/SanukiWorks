@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勤怠システム - チーム選択</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .back-btn {
+            background-color: #f5f5f5;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: auto;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body class="tablet-mode">
+    <div style="padding: 12px 20px; display: flex; align-items: center; background-color: #fff; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div class="back-btn" onclick="location.href='tablet-selection.html'">
+            <span>←</span>
+            <span>拠点選択へ戻る</span>
+        </div>
+        <div style="font-weight: bold; font-size: 1.2rem; color: #2980b9;" id="currentBaseName">---</div>
+    </div>
+
+    <div class="tablet-selection-page" style="min-height: calc(100vh - 60px);">
+        <div class="speech-bubble-container">
+            <img src="assets/bird_icon.png" class="bird-icon" alt="Bird">
+            <div class="speech-bubble">
+                部署（チーム）を選択してください
+            </div>
+        </div>
+
+        <div class="selection-grid" id="groupGrid">
+            <!-- JSで動的に生成 -->
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const baseId = localStorage.getItem('selected_base_id');
+            const baseName = localStorage.getItem('selected_base_name');
+            
+            if (!baseId) {
+                location.href = 'tablet-selection.html';
+                return;
+            }
+
+            document.getElementById('currentBaseName').textContent = baseName;
+            await loadGroups(baseId);
+        });
+
+        async function loadGroups(baseId) {
+            const grid = document.getElementById('groupGrid');
+            try {
+                const groups = await Api.get(`/attendance/groups/${baseId}`);
+                grid.innerHTML = '';
+
+                if (!groups || groups.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; font-size: 1.5rem; padding: 40px;">この拠点には登録されたチームがありません</p>';
+                    return;
+                }
+
+                groups.forEach((group, index) => {
+                    const name = group.name || group.Name || "";
+                    
+                    const item = document.createElement('div');
+                    item.className = 'selection-item';
+                    item.onclick = () => selectGroup(name);
+
+                    // 背景色
+                    const colors = ['#f8c9d9', '#ffcd94', '#addb8a', '#bfefff'];
+                    const color = colors[index % colors.length];
+
+                    item.innerHTML = `
+                        <div class="selection-box" style="background-color: ${color}; height: 160px; border-radius: 16px; font-size: 2rem; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                            ${name}
+                        </div>
+                    `;
+                    grid.appendChild(item);
+                });
+            } catch (err) {
+                console.error('グループ取得失敗:', err);
+            }
+        }
+
+        function selectGroup(groupName) {
+            localStorage.setItem('selected_clock_group', groupName);
+            window.location.href = 'tablet-member-selection.html';
+        }
+    </script>
+</body>
+</html>

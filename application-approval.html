@@ -177,95 +177,91 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Sample Rows from screenshot -->
-                <tr class="row-approved">
-                    <td>test太郎</td>
-                    <td>さぬきの森医務</td>
-                    <td>2025/06/12</td>
-                    <td>2025/06/03</td>
-                    <td>打刻修正申請</td>
-                    <td style="text-align: center; font-weight: bold;">7:30</td>
-                    <td style="text-align: center; font-weight: bold;">13:30</td>
-                    <td></td>
-                    <td class="status-cell">承認済み</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr class="row-approved">
-                    <td>test太郎</td>
-                    <td></td>
-                    <td>2025/06/12</td>
-                    <td>2025/06/03</td>
-                    <td>残業申請</td>
-                    <td style="text-align: center; font-weight: bold;">12:30</td>
-                    <td style="text-align: center; font-weight: bold;">13:30</td>
-                    <td>忙しかったため</td>
-                    <td class="status-cell">承認済み</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr class="row-approved">
-                    <td>松木 静</td>
-                    <td>さぬきの森特養</td>
-                    <td>2025/06/27</td>
-                    <td>2025/05/26</td>
-                    <td>休日出勤申請</td>
-                    <td style="text-align: center; font-weight: bold;">12:00</td>
-                    <td style="text-align: center; font-weight: bold;">20:30</td>
-                    <td></td>
-                    <td class="status-cell">承認済み</td>
-                    <td style="font-weight: bold;">2025/05/27</td>
-                    <td></td>
-                </tr>
-                <tr class="row-approved">
-                    <td>テスト 太郎</td>
-                    <td></td>
-                    <td>2025/06/27</td>
-                    <td>2025/05/10</td>
-                    <td>休日出勤申請</td>
-                    <td style="text-align: center; font-weight: bold;">10:00</td>
-                    <td style="text-align: center; font-weight: bold;">13:00</td>
-                    <td></td>
-                    <td class="status-cell">承認済み</td>
-                    <td style="font-weight: bold;">2025/05/01</td>
-                    <td></td>
-                </tr>
-                <tr class="row-approved">
-                    <td>松木 静</td>
-                    <td>さぬきの森特養</td>
-                    <td>2025/06/30</td>
-                    <td>2025/05/01</td>
-                    <td>休日出勤申請</td>
-                    <td style="text-align: center; font-weight: bold;">7:00</td>
-                    <td style="text-align: center; font-weight: bold;">15:30</td>
-                    <td></td>
-                    <td class="status-cell">承認済み</td>
-                    <td style="font-weight: bold;">2025/05/04</td>
-                    <td></td>
-                </tr>
-
-                <!-- Pending Example -->
-                <tr class="row-pending">
-                    <td>松下 英行</td>
-                    <td>玉藻荘事務所</td>
-                    <td>2026/01/05</td>
-                    <td>2026/01/05</td>
-                    <td>休日出勤申請</td>
-                    <td style="text-align: center; font-weight: bold;">8:50</td>
-                    <td style="text-align: center; font-weight: bold;">17:50</td>
-                    <td>イベント対応</td>
-                    <td class="status-cell">未対応</td>
-                    <td style="font-weight: bold; color: #007bb5;">2026/01/12</td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn-action btn-approve" onclick="alert('承認しました')"></button>
-                            <button class="btn-action btn-reject" onclick="alert('否認しました')"></button>
-                        </div>
-                    </td>
-                </tr>
+                <!-- ここに動的に申請データが挿入されます -->
             </tbody>
         </table>
     </div>
 
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPendingRequests();
+        });
+
+        /**
+         * 未承認の申請一覧をロード
+         */
+        async function loadPendingRequests() {
+            const tbody = document.querySelector('.approval-table tbody');
+            try {
+                // APIからデータを取得 (Admin用の全件取得エンドポイント)
+                const requests = await Api.get('/Request/pending-all');
+                
+                // 表をクリア
+                tbody.innerHTML = '';
+                
+                if (!requests || requests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 40px; color: #999;">現在、未対応の申請はありません</td></tr>';
+                    return;
+                }
+
+                // 日付フォーマット
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '';
+                    const d = new Date(dateStr);
+                    return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+                };
+
+                // 時刻フォーマット (HH:mm)
+                const formatTime = (timeStr) => {
+                    if (!timeStr) return '';
+                    return timeStr.substring(0, 5); // 09:00:00 -> 09:00
+                };
+
+                // データを1行ずつ追加
+                requests.forEach(req => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'row-pending';
+                    
+                    tr.innerHTML = `
+                        <td>${req.employeeName || ''}</td>
+                        <td>${req.clockGroup || ''}</td>
+                        <td>${formatDate(req.requestDate)}</td>
+                        <td>${formatDate(req.targetDate)}</td>
+                        <td>${req.type || ''}</td>
+                        <td style="text-align: center; font-weight: bold;">${formatTime(req.startTime)}</td>
+                        <td style="text-align: center; font-weight: bold;">${formatTime(req.endTime)}</td>
+                        <td>${req.reason || ''}</td>
+                        <td class="status-cell">${req.status || '未対応'}</td>
+                        <td style="font-weight: bold; color: #007bb5;">${formatDate(req.transferDate)}</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn-action btn-approve" onclick="handleAction(${req.id}, 'approve')"></button>
+                                <button class="btn-action btn-reject" onclick="handleAction(${req.id}, 'reject')"></button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('申請一覧取得失敗:', err);
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: red; padding: 20px;">データの読み込みに失敗しました</td></tr>';
+            }
+        }
+
+        /**
+         * 承認・否認ボタンの処理 (デモ版)
+         */
+        async function handleAction(id, type) {
+            const actionLabel = type === 'approve' ? '承認' : '否認';
+            if (confirm(`${actionLabel}してもよろしいですか？`)) {
+                // TODO: 実際のAPI呼び出し
+                alert(`${id}番の申請を${actionLabel}しました。 (現在はデモ動作です)`);
+                // 再ロード
+                await loadPendingRequests();
+            }
+        }
+    </script>
 </body>
 </html>

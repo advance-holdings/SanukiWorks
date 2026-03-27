@@ -185,284 +185,72 @@
     </header>
 
     <main class="emp-list-main">
-        <table class="list-table">
+        <table class="list-table" id="employeeTable">
             <thead>
                 <tr>
                     <th class="col-indicator"></th>
-                    <th>基本情報:社員番号</th>
-                    <th>氏名_氏</th>
+                    <th>社員番号</th>
+                    <th>氏名_姓</th>
                     <th>氏名_名</th>
                     <th>入社年月日</th>
                     <th>在籍区分</th>
                     <th>郵便番号</th>
                     <th>住所</th>
-                    <th>就業場所1</th>
-                    <th>就業場所2</th>
-                    <th>就業場所3</th>
-                    <th>業務内容1</th>
-                    <th>業務内容2</th>
-                    <th>業務内容3</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- 行1 -->
-                <tr class="row-active">
-                    <td class="col-indicator">▶</td>
-                    <td></td>
-                    <td>十河</td>
-                    <td>愛美</td>
-                    <td>2022/03/01</td>
-                    <td>退社</td>
-                    <td>760-0079</td>
-                    <td>香川県高松市松縄町1126番地2</td>
-                    <td>老人介護支援センター新</td>
-                    <td></td>
-                    <td></td>
-                    <td>介護支援専門員業務</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行2 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td></td>
-                    <td>木村</td>
-                    <td>圭介</td>
-                    <td>2019/8/1</td>
-                    <td>退社</td>
-                    <td>761-0111</td>
-                    <td>香川県高松市屋島東町576</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行3 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>1</td>
-                    <td>さぬき</td>
-                    <td>太郎</td>
-                    <td>2020/09/01</td>
-                    <td>在籍</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行4 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>2</td>
-                    <td>たまも</td>
-                    <td>太郎</td>
-                    <td>2020/09/01</td>
-                    <td>在籍</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行5 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>3</td>
-                    <td>ばんちょう</td>
-                    <td>太郎</td>
-                    <td>2020/09/01</td>
-                    <td>在籍</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行6 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>4</td>
-                    <td>森</td>
-                    <td>管理</td>
-                    <td>2024/04/01</td>
-                    <td>退職</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行7 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>18</td>
-                    <td>池田</td>
-                    <td>明子</td>
-                    <td>1987/04/01</td>
-                    <td>在籍</td>
-                    <td>761-8042</td>
-                    <td>香川県高松市御厩町1327-3</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行8 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>22</td>
-                    <td>狭間</td>
-                    <td>清治</td>
-                    <td>1988/01/01</td>
-                    <td>退職</td>
-                    <td>761-1706</td>
-                    <td>香川県高松市香川町川東上2155-1</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行9 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>24</td>
-                    <td>三好</td>
-                    <td>貴弘</td>
-                    <td>1988/04/01</td>
-                    <td>在籍</td>
-                    <td>761-8078</td>
-                    <td>香川県高松市仏生山町甲2391-4</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行10 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>48</td>
-                    <td>田中</td>
-                    <td>滋子</td>
-                    <td>1993/04/01</td>
-                    <td>退職</td>
-                    <td>760-0073</td>
-                    <td>香川県高松市栗林町2-16-3</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行11 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>50</td>
-                    <td>永原</td>
-                    <td>知美</td>
-                    <td>1993/04/01</td>
-                    <td>在籍</td>
-                    <td>761-0443</td>
-                    <td>香川県高松市川島東町813-13</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行12 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>51</td>
-                    <td>北田</td>
-                    <td>理江</td>
-                    <td>1994/04/01</td>
-                    <td>在籍</td>
-                    <td>769-0103</td>
-                    <td>香川県高松市国分寺町福家甲3500</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行13 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>59</td>
-                    <td>作花</td>
-                    <td>二三事業</td>
-                    <td>1995/04/01</td>
-                    <td>退職</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行14 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>66</td>
-                    <td>筒井</td>
-                    <td>智子</td>
-                    <td>1996/04/01</td>
-                    <td>在籍</td>
-                    <td>760-0004</td>
-                    <td>香川県高松市西宝町2丁目844-57ク</td>
-                    <td>特別養護老人ホームさぬき</td>
-                    <td></td>
-                    <td></td>
-                    <td>支援員業務</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- 行15 -->
-                <tr>
-                    <td class="col-indicator">▶</td>
-                    <td>77</td>
-                    <td>西岡</td>
-                    <td>誓子</td>
-                    <td>1997/04/01</td>
-                    <td>在籍</td>
-                    <td>761-8046</td>
-                    <td>香川県高松市川部町16-3</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
+            <tbody id="employeeListBody">
+                <!-- Data will be loaded here -->
             </tbody>
         </table>
     </main>
 
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadEmployeeList();
+        });
+
+        async function loadEmployeeList() {
+            const body = document.getElementById('employeeListBody');
+            const countEl = document.querySelector('.record-count');
+            
+            try {
+                const response = await fetch('http://localhost:5163/api/Employee/search', {
+                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('jwt_token')}` }
+                });
+                const employees = await response.json();
+
+                body.innerHTML = '';
+                employees.forEach((emp, index) => {
+                    const tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer';
+                    tr.onclick = () => {
+                        // マスタ画面へ遷移（社員番号を渡す想定）
+                        window.location.href = `employee-master.html?id=${emp.社員番号}`;
+                    };
+                    
+                    const hireDate = emp.入社年月日 ? emp.入社年月日.substring(0, 10).replace(/-/g, '/') : '';
+                    
+                    tr.innerHTML = `
+                        <td class="col-indicator">▶</td>
+                        <td>${emp.社員番号 || ''}</td>
+                        <td>${emp.氏名_姓 || ''}</td>
+                        <td>${emp.氏名_名 || ''}</td>
+                        <td>${hireDate}</td>
+                        <td><span class="status-badge" style="background-color: ${emp.在籍区分 === '在籍' ? '#4cae4c' : '#f44336'}">${emp.在籍区分 || ''}</span></td>
+                        <td>${emp.郵便番号 || ''}</td>
+                        <td>${emp.住所 || ''}</td>
+                    `;
+                    body.appendChild(tr);
+                });
+
+                countEl.textContent = `${employees.length} / ${employees.length} レコード`;
+
+            } catch (err) {
+                console.error('一覧取得失敗:', err);
+                body.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: red;">データの取得に失敗しました。APIが起動しているか確認してください。</td></tr>';
+            }
+        }
+    </script>
 </body>
 </html>

@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SNK_従業員マスタ</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Flatpickr Datepicker -->
+    <!-- Flatpickr for date inputs -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    
+    <!-- AutoKana for Furigana Assist -->
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-autokana/dist/autokana.min.js"></script>
     <!-- YubinBango for Zip-to-Address -->
     <script src="https://yubinbango.github.io/yubinbango/yubinbango.js" charset="UTF-8"></script>
     <style>
@@ -70,6 +73,7 @@
         .search-only, .edit-only { display: none !important; }
         body.search-mode .search-only, body.edit-mode .search-only, 
         body.edit-mode .edit-only { display: inline-block !important; width: 100%; }
+        body.edit-mode tr.edit-only { display: table-row !important; }
         body.search-mode .search-only.search-flex, body.edit-mode .search-only.search-flex { display: flex !important; align-items: center; gap: 8px; }
         body.search-mode .display-only, body.edit-mode .display-only { display: none !important; }
 
@@ -336,24 +340,35 @@
             position: relative;
         }
 
-        .btn-save-floating {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: #2fb5e5;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            user-select: none;
-        }
-
         .btn-save-floating:hover {
             background-color: #1a9bc9;
+        }
+
+        .floating-actions-container {
+            position: absolute;
+            right: 20px;
+            top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            z-index: 100;
+        }
+
+        /* Floating Actions Container (right side of bottom panel) */
+        .floating-actions-container {
+            position: absolute;
+            right: 20px;
+            top: 40px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        body.edit-mode .floating-actions-container {
+            display: flex;
         }
 
         /* Footer */
@@ -410,9 +425,7 @@
         .license-table th, .license-table td { border: 1px solid #aaa; padding: 4px; height: 26px; }
         .license-table th { background-color: #bdf1fa; color: #333; font-weight: normal; border: 1px solid #89c7d6; }
         .license-table td { background-color: #fff; border: 1px solid #ccc; position: relative; }
-        .btn-license-edit { background-color: #5cb85c; color: #fff; border: none; padding: 4px 16px; font-size: 0.85rem; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 1px 1px 3px rgba(0,0,0,0.2);}
-        .btn-license-edit:hover { background-color: #4cae4c; }
-        .btn-license-edit svg { width: 14px; height: 14px; fill: #fff; }
+        .license-table td { background-color: #fff; border: 1px solid #ccc; position: relative; }
         .icon-calendar { width: 16px; height: 16px; fill: #ccc; vertical-align: middle; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); cursor: pointer; }
         .icon-file-blue { width: 16px; height: 16px; fill: #0078a8; vertical-align: middle; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); cursor: pointer; }
 
@@ -458,7 +471,107 @@
             color: #666 !important;
         }
 
+        /* New Floating Add Button */
+        .btn-add-transfer-large {
+            background-color: #65bddc;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+            line-height: 1;
+        }
+        .btn-add-transfer-large:hover {
+            background-color: #4da6c5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Custom Dialog Style */
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .dialog-overlay.active { display: flex; }
+        .system-dialog {
+            width: 340px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            border: 1px solid #ddd;
+            animation: dialogScale 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes dialogScale { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .dialog-header { background: #65bddc; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .dialog-title { font-weight: bold; font-size: 0.95rem; }
+        .dialog-close-x { cursor: pointer; font-size: 1.4rem; line-height: 1; }
+        .dialog-content { padding: 25px 20px; display: flex; gap: 20px; align-items: center; }
+        .dialog-icon { font-size: 2.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        .dialog-message { font-size: 0.95rem; color: #333; line-height: 1.5; font-weight: 500; }
+        .dialog-footer { padding: 12px 20px; display: flex; justify-content: flex-end; gap: 12px; background: #fdfdfd; border-top: 1px solid #eee; }
+        .dialog-btn { padding: 8px 24px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; font-size: 0.9rem; font-weight: bold; transition: all 0.1s; }
+        .dialog-btn:active { transform: scale(0.96); }
+        .btn-ok { background: #65bddc; color: white; border-color: #5aa7c5; }
+        .btn-cancel { background: #fff; color: #777; }
+        .btn-ok:hover { background: #4da6c5; }
+        .btn-cancel:hover { background: #f5f5f5; }
+
+        /* Trash Icon in Table */
+        .action-cell { width: 44px; text-align: center; border-left: 1px solid #ddd; }
+        .trash-btn { background: none; border: none; cursor: pointer; padding: 2px; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+        .trash-btn:hover { background-color: #fcebeb; }
+        .trash-btn svg { width: 18px; height: 18px; fill: #65bddc; }
+        .trash-btn:hover svg { fill: #f44336; }
+
+        /* Large Floating Delete Button */
+        .btn-delete-transfer-large {
+            display: flex; /* Always visible */
+            opacity: 0.2;  /* Faded when no selection */
+            pointer-events: none;
+            background-color: #65bddc;
+            color: white;
+            border: none;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-delete-transfer-large.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .btn-delete-transfer-large:hover {
+            background-color: #f44336;
+            transform: scale(1.1);
+        }
+        .btn-delete-transfer-large svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+
+        /* Highlighting for selected row */
+        .selected-row {
+            background-color: #e3f2fd !important;
+            border: 2px solid #65bddc !important;
+        }
+
     </style>
+
 </head>
 <body>
 
@@ -498,11 +611,11 @@
                 </div>
                 
                 <div class="nav-arrows" style="display: flex; gap: 10px; align-items: center; margin-left: 10px; color: #005b8a;">
-                    <div style="display: flex; align-items: center; gap: 2px; cursor: pointer;">
+                    <div id="btn-prev" style="display: flex; align-items: center; gap: 2px; cursor: pointer; opacity: 0.5;">
                         <svg viewBox="0 0 24 24" style="width: 28px; height: 28px; fill: currentColor;"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
                         <span style="font-size: 0.8rem; font-weight: 500;">前へ</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 2px; cursor: pointer;">
+                    <div id="btn-next" style="display: flex; align-items: center; gap: 2px; cursor: pointer; opacity: 0.5;">
                         <span style="font-size: 0.8rem; font-weight: 500;">次へ</span>
                         <svg viewBox="0 0 24 24" style="width: 28px; height: 28px; fill: currentColor;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
                     </div>
@@ -533,7 +646,7 @@
 
             <!-- Group 3: DB Actions -->
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div class="action-icon">
+                <div class="action-icon" onclick="createNewRecord()">
                     <svg viewBox="0 0 24 24"><path d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
                     <span>新規作成</span>
                 </div>
@@ -541,7 +654,7 @@
                     <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                     <span>編集</span>
                 </div>
-                <div class="action-icon">
+                <div class="action-icon" onclick="deleteRecord()">
                     <svg viewBox="0 0 24 24"><path d="M7 11v2h10v-2H7zm5-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
                     <span>削除</span>
                 </div>
@@ -564,20 +677,26 @@
                         <div class="info-row border-top">
                             <div class="info-label">社員番号</div>
                             <div class="info-value">
-                                <span class="display-only" style="padding: 4px; font-size: 1rem;">301</span>
-                                <input type="text" class="search-only search-input" placeholder="" style="width: 120px; padding: 4px;">
+                                <span id="display-emp-no" class="display-only" style="padding: 4px; font-size: 1rem;">301</span>
+                                <input type="text" id="input-emp-no" class="search-only search-input" placeholder="半角数字のみ" style="width: 120px; padding: 4px;">
                             </div>
                         </div>
                         <div class="info-row">
                             <div class="info-label">氏名</div>
                             <div class="info-value" style="display: flex; flex-direction: column; align-items: flex-start; padding: 4px 10px;">
                                 <div class="kana-name">
-                                    <span class="display-only">ソゴウ　マナミ</span>
-                                    <input type="text" id="input-kana" class="search-only search-input" placeholder="フリガナを入力">
+                                    <span id="display-fullname-kana" class="display-only">ソゴウ　マナミ</span>
+                                    <div class="search-only search-flex" style="gap: 5px;">
+                                        <input type="text" id="input-kana-family" class="search-input" placeholder="姓 (カナ)" style="width: 100px;">
+                                        <input type="text" id="input-kana-given" class="search-input" placeholder="名 (カナ)" style="width: 100px;">
+                                    </div>
                                 </div>
                                 <div style="display: flex; align-items: baseline;">
-                                    <span class="kanji-name display-only">十河　愛美</span>
-                                    <input type="text" id="input-name" class="search-only search-input" placeholder="氏名を入力">
+                                    <span id="display-fullname" class="kanji-name display-only">十河　愛美</span>
+                                    <div class="search-only search-flex" style="gap: 5px; margin-top: 4px;">
+                                        <input type="text" id="input-name-family" class="search-input" placeholder="姓" style="width: 100px;">
+                                        <input type="text" id="input-name-given" class="search-input" placeholder="名" style="width: 100px;">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -587,10 +706,10 @@
                             <div class="info-value" style="flex-direction: column; align-items: flex-start; gap: 4px; width: 100%;">
                                 <div class="display-only">
                                     <div style="display: flex; gap: 10px;">
-                                        <span>〒 760-0079</span>
+                                        <span id="display-postal">〒 760-0079</span>
                                         <span style="background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid #ccc;">map</span>
                                     </div>
-                                    <div>香川県高松市松縄町1126番地2</div>
+                                    <div id="display-address">香川県高松市松縄町1126番地2</div>
                                 </div>
                                 <div class="search-only search-flex">
                                     <input type="text" class="search-input p-postal-code" placeholder="〒" style="width: 80px; padding: 4px;">
@@ -600,34 +719,30 @@
                         </div>
                         <div class="info-row">
                             <div class="info-label">在籍区分</div>
-                            <div class="info-value" style="justify-content: space-between; flex-wrap: wrap; width: 100%;">
-                                <div class="display-only" style="display: flex; width: 100%; justify-content: space-between; flex-wrap: wrap;">
-                                    <div style="display: flex; gap: 10px; align-items: center;">
-                                        <span class="status-badge">退社</span>
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; gap: 4px; border-left: 1px dotted #ccc; padding-left: 10px;">
-                                        <div style="display: flex; gap: 8px;">
-                                            <span style="color: #666; width: 60px;">入社年月日</span>
-                                            <span>2022年03月01日</span>
-                                        </div>
-                                        <div style="display: flex; gap: 8px;">
-                                            <span style="color: #666; width: 60px;">退社日</span>
-                                            <span>2022年03月02日</span>
-                                        </div>
-                                        <div style="display: flex; gap: 8px;">
-                                            <span style="color: #666; width: 60px;">勤続期間</span>
-                                            <span>00年00ヶ月</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <button class="btn-retire">退社</button>
-                                    </div>
+                            <div class="info-value" style="width: 100%; padding: 0;">
+                                <!-- 1枚目の画像に合わせた表示レイアウト -->
+                                <div class="display-only" style="width: 100%;">
+                                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                                        <tr>
+                                            <th style="background-color: #f9f9f9; width: 100px; padding: 10px; border-right: 1px solid var(--border-color); font-weight: normal;">入社年月日</th>
+                                            <td style="padding: 10px; border-right: 1px solid var(--border-color); width: 160px;" id="display-hire-date"></td>
+                                            <th style="background-color: #f9f9f9; width: 100px; padding: 10px; border-right: 1px solid var(--border-color); font-weight: normal;">退社日</th>
+                                            <td style="padding: 10px; border-right: 1px solid var(--border-color); width: 160px;" id="display-retire-date"></td>
+                                            <td rowspan="2" style="padding-left: 15px; border-left: none; vertical-align: top;">
+                                                <button id="display-retire-btn" class="btn-retire" style="display: none; height: 32px; min-width: 60px;">退社</button>
+                                            </td>
+                                        </tr>
+                                        <tr style="border-top: 1px solid var(--border-color);">
+                                            <th style="padding: 10px; border-right: 1px solid var(--border-color); font-weight: normal;">有効</th>
+                                            <td style="padding: 10px; border-right: 1px solid var(--border-color);"></td>
+                                            <th style="background-color: #f9f9f9; padding: 10px; border-right: 1px solid var(--border-color); font-weight: normal;">継続期間</th>
+                                            <td style="padding: 10px; border-right: 1px solid var(--border-color);" id="display-service-period"></td>
+                                        </tr>
+                                    </table>
                                 </div>
-                                <div class="search-only search-flex">
-                                    <select class="search-input" style="padding: 4px; width: 100px;">
-                                        <option value=""></option>
-                                        <option value="在籍">在籍</option>
-                                        <option value="退社">退社</option>
+                                <div class="search-only search-flex" style="padding: 10px;">
+                                    <select id="sel-status" class="search-input" style="padding: 4px; width: 100px;">
+                                        <option value="">(ロード中...)</option>
                                     </select>
                                     <span style="color: #666; font-size: 0.8rem;">入社日</span>
                                     <div style="position: relative;">
@@ -1028,21 +1143,33 @@
                     <div class="tab active" onclick="switchCustomTab('tab-content-idou', this)">異動情報</div>
                     <div class="tab" onclick="switchCustomTab('tab-content-koyou', this)">雇用情報</div>
                     <div class="tab" onclick="switchCustomTab('tab-content-history', this)">雇用情報履歴</div>
-                    <div class="tab" onclick="switchCustomTab('tab-dummy', this)">勤怠情報</div>
+                    <div class="tab" onclick="switchCustomTab('tab-content-kintai', this)">勤怠情報</div>
                     <div class="tab" onclick="switchCustomTab('tab-content-saiyou', this)">採用情報</div>
                     <div class="tab" onclick="switchCustomTab('tab-content-license', this)">資格免許情報</div>
                 </div>
                 
                 <!-- 異動情報 Tab Content -->
                 <div id="tab-content-idou" class="tab-content active">
-                    <div class="data-table-container" style="border-top: none;">
-                        <table class="data-table">
+                    <div class="data-table-container" style="border-top: none; overflow-x: auto;">
+                        <table class="data-table" style="table-layout: fixed; min-width: 1000px;">
+                            <colgroup>
+                                <col style="width: 11%;">
+                                <col style="width: 11%;">
+                                <col style="width: 11%;">
+                                <col style="width: 12%;">
+                                <col style="width: 8%;">
+                                <col style="width: 12%;">
+                                <col style="width: 12%;">
+                                <col style="width: 11%;">
+                                <col style="width: 11%;">
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>異動発令日</th>
                                     <th>異動区分</th>
-                                    <th>異動内容</th>
+                                    <th>異動内示</th>
                                     <th>発令内容_所属</th>
+                                    <th>発令内容_新雇用</th>
                                     <th>発令内容_新役職</th>
                                     <th>発令内容_新職名</th>
                                     <th>発令内容_基本給</th>
@@ -1051,23 +1178,53 @@
                             </thead>
                             <tbody>
                                 <!-- Editable Record Row -->
-                                <tr class="edit-record-row" style="background:#fff;">
-                                    <td><input type="text" class="input-full" placeholder=""></td>
-                                    <td><input type="text" class="input-full" placeholder=""></td>
-                                    <td><input type="text" class="input-full" placeholder=""></td>
-                                    <td><input type="text" class="input-full" placeholder=""></td>
-                                    <td><input type="text" class="input-full" placeholder=""></td>
-                                    <td><input type="text" class="input-full" placeholder=""></td>
-                                    <td><input type="text" class="input-full" placeholder=""></td>
-                                    <td><input type="text" class="input-full" placeholder=""></td>
-                                </tr>
-                                <tr style="height: 30px;">
-                                    <td colspan="8" style="text-align: right; border-top: none;">
-                                        <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:#92c4e0; cursor:pointer;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                <tr class="edit-record-row edit-only" style="background:#fff;">
+                                    <td style="position: relative; padding-right: 24px;">
+                                        <input type="text" class="input-full datepicker" id="input-transfer-date" placeholder="YYYY/MM/DD">
+                                        <svg class="icon-calendar" viewBox="0 0 24 24" style="width:14px; height:14px; right: 5px;"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                                    </td>
+                                    <td>
+                                        <select class="input-full" id="sel-transfer-kbn">
+                                            <option value="">（選択してください）</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="input-full" id="sel-transfer-naiji">
+                                            <option value="">（選択してください）</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="input-full" id="sel-transfer-dept">
+                                            <option value="">（選択してください）</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="input-full" id="sel-transfer-koyou">
+                                            <option value="">（選択してください）</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="input-full" id="sel-transfer-role">
+                                            <option value="">（選択してください）</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="input-full" id="sel-transfer-title">
+                                            <option value="">（選択してください）</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="input-full" id="input-transfer-basepay" placeholder="手入力">
+                                    </td>
+                                    <td>
+                                        <select class="input-full" id="sel-transfer-license">
+                                            <option value="">（選択してください）</option>
+                                        </select>
                                     </td>
                                 </tr>
-                                <tr style="height: 30px;"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                                <tr style="height: 30px;"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                            </tbody>
+                            <tbody id="interchange-history-body">
+                                <!-- Data will be loaded here via JS -->
                             </tbody>
                         </table>
                     </div>
@@ -1075,257 +1232,58 @@
 
                 <!-- 雇用情報 Tab Content -->
                 <div id="tab-content-koyou" class="tab-content" style="padding-top: 20px;">
-                    <table class="koyou-table">
-                        <colgroup>
-                            <col style="width: 14%;"><col style="width: 14%;"><col style="width: 10%;"><col style="width: 14%;"><col style="width: 11%;"><col style="width: 16%;"><col style="width: 7%;"><col style="width: 7%;"><col style="width: 7%;">
-                        </colgroup>
-                        <tbody>
-                            <!-- Row 1 -->
-                            <tr class="header-row">
-                                <th>発令年月日</th>
-                                <th>採用区分</th>
-                                <th colspan="2">契約期間終了</th>
-                                <th>始業終業時刻</th>
-                                <th>休憩時間・仮眠時間</th>
-                                <th colspan="3">休日</th>
-                            </tr>
-                            <!-- Row 2 -->
-                            <tr>
-                                <td>2025年04月01日</td>
-                                <td>パート</td>
-                                <td style="border-right: none;">年度末</td>
-                                <td style="border-left: none;">2026年03月31日</td>
-                                <td>その他固定</td>
-                                <td>休憩時間60分</td>
-                                <td colspan="3">非定例日</td>
-                            </tr>
-                            <!-- Row 3 -->
-                            <tr class="header-row">
-                                <th>就業場所</th>
-                                <th>業務内容</th>
-                                <th>勤務日：パート</th>
-                                <th colspan="2">基本給</th>
-                                <th>賃金等級：正規新卒</th>
-                                <th>業務手当：正規新卒</th>
-                                <th>待機手当</th>
-                                <th>夜勤手当</th>
-                            </tr>
-                            <!-- Row 4 -->
-                            <tr>
-                                <td>特別養護老人ホーム玉藻荘</td>
-                                <td>介護補助業務</td>
-                                <td>週4日以内</td>
-                                <td>時給</td>
-                                <td>1,110</td>
-                                <td><svg viewBox="0 0 24 24" class="svg-icon-blue"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <!-- Row 5 -->
-                            <tr class="header-row">
-                                <td colspan="2" style="background-color: #fff; border-bottom: 1px solid #777; border-right: 1px solid #777;"></td>
-                                <th>笑顔手当</th>
-                                <th colspan="2">通勤手当：パート</th>
-                                <th>社会保険の加入状況：パート</th>
-                                <th>雇用保険の適用：パート</th>
-                                <th>親睦会費1</th>
-                                <th>親睦会費2：パート</th>
-                            </tr>
-                            <!-- Row 6 -->
-                            <tr>
-                                <td colspan="2" style="background-color: #fff; border-top: none;"></td>
-                                <td><svg viewBox="0 0 24 24" class="svg-icon-blue"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></td>
-                                <td colspan="2">有</td>
-                                <td>厚生年金・健康保険</td>
-                                <td>有</td>
-                                <td></td>
-                                <td>3,500円(日割)</td>
-                            </tr>
-                            <!-- Row 7 -->
-                            <tr>
-                                <th style="background-color: #888; color: #fff; font-weight: normal;">メモ欄</th>
-                                <td colspan="8"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <table class="koyou-times-table">
-                        <tbody>
-                            <tr>
-                                <th>始業時刻1</th><th>始業時刻2</th><th>始業時刻3</th><th>始業時刻4</th><th>始業時刻5</th><th>始業時刻6</th><th>始業時刻7</th><th>始業時刻8</th><th>始業時刻9</th><th>始業時刻10</th><th>始業時刻11</th>
-                            </tr>
-                            <tr>
-                                <td>9:30</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                            </tr>
-                            <tr>
-                                <th>終業時刻1</th><th>終業時刻2</th><th>終業時刻3</th><th>終業時刻4</th><th>終業時刻5</th><th>終業時刻6</th><th>終業時刻7</th><th>終業時刻8</th><th>終業時刻9</th><th>終業時刻10</th><th>終業時刻11</th>
-                            </tr>
-                            <tr>
-                                <td>17:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <!-- 既存の雇用情報の表（ここは一旦維持するか、後で統合） -->
+                    <div style="padding: 20px; color: #666; background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px;">
+                        ※雇用情報の詳細はこちらで確認・追加できます
+                    </div>
                 </div>
 
                 <!-- 雇用情報履歴 Tab Content -->
-                <div id="tab-content-history" class="tab-content" style="padding: 24px 40px; background: #e5e5e5; min-height: 400px; padding-right: 60px;">
-                    <!-- Record 1 -->
-                    <div class="history-record">
-                        <table class="history-table">
-                            <colgroup>
-                                <col style="width: 9%;"><col style="width: 8%;"><col style="width: 17%;"><col style="width: 13%;"><col style="width: 14%;"><col style="width: 5%;"><col style="width: 6%;"><col style="width: 10%;"><col style="width: 9%;"><col style="width: 9%;">
-                            </colgroup>
-                            <tbody>
-                                <tr>
-                                    <th class="hist-header">発令日</th>
-                                    <th class="hist-header">採用区分</th>
-                                    <th class="hist-header">就業場所</th>
-                                    <th class="hist-header">業務内容</th>
-                                    <th class="hist-header">休憩時間</th>
-                                    <th class="hist-header" colspan="2">基本給</th>
-                                    <th class="hist-header">勤務日：パート</th>
-                                    <th class="hist-header">通勤手当：パート</th>
-                                    <th class="hist-header">社保加入状況</th>
-                                </tr>
-                                <tr>
-                                    <td>2024/8/1</td>
-                                    <td>パート</td>
-                                    <td>特別養護老人ホーム玉藻荘</td>
-                                    <td>調理補助業務</td>
-                                    <td>休憩時間60分</td>
-                                    <td style="border-right: none;">日給</td><td style="border-left: none;">1,100</td>
-                                    <td>週4日以内</td>
-                                    <td>無</td>
-                                    <td>無</td>
-                                </tr>
-                                <tr>
-                                    <th class="hist-header" colspan="2">契約期間終了</th>
-                                    <th class="hist-header" colspan="2" style="background:#e5e5e5; border:none; border-bottom:1px solid #aaa;"></th>
-                                    <th class="hist-header">休日</th>
-                                    <th class="hist-header" colspan="2">賃金等級</th>
-                                    <th class="hist-header">業務手当</th>
-                                    <th class="hist-header">待機手当</th>
-                                    <th class="hist-header">夜勤手当</th>
-                                </tr>
-                                <tr>
-                                    <td style="border-right: none;">年度末</td><td style="border-left: none;">2025/03/31</td>
-                                    <td colspan="2" style="border-top: none;"></td>
-                                    <td></td><td colspan="2"></td><td></td><td></td><td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table class="history-table" style="border-top: none;">
-                            <colgroup>
-                                <col style="width: 10%;"><col style="width: 8%;"><col style="width: 8%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;">
-                            </colgroup>
-                            <tbody>
-                                <tr>
-                                    <th class="hist-header">雇用保険の適用</th>
-                                    <th class="hist-header">親睦会費</th>
-                                    <th class="hist-header">親睦会費2</th>
-                                    <th class="hist-header">時刻1</th>
-                                    <th class="hist-header">時刻2</th>
-                                    <th class="hist-header">時刻3</th>
-                                    <th class="hist-header">時刻4</th>
-                                    <th class="hist-header">時刻5</th>
-                                    <th class="hist-header">時刻6</th>
-                                    <th class="hist-header">時刻7</th>
-                                    <th class="hist-header">時刻8</th>
-                                    <th class="hist-header">時刻9</th>
-                                    <th class="hist-header">時刻10</th>
-                                    <th class="hist-header">時刻11</th>
-                                </tr>
-                                <tr>
-                                    <td>無</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                                </tr>
-                                <tr>
-                                    <th class="hist-header" colspan="2">始業就業時刻</th>
-                                    <td>その他固定</td>
-                                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <svg viewBox="0 0 24 24" class="trash-icon-hist"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                <div id="tab-content-history" class="tab-content" style="padding: 24px 40px; background: #f0f2f5; min-height: 400px; overflow-y: auto;">
+                    
+                    <!-- 新規追加用フォーム (編集モード時のみ表示) -->
+                    <div class="edit-only history-record" style="background: #fff; border: 2px dashed #00b0f0; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,176,240,0.1);">
+                        <div style="padding: 10px 15px; background: #e6f7ff; color: #008cba; font-weight: bold; border-bottom: 1px solid #b3e5fc; display: flex; justify-content: space-between; align-items: center;">
+                            <span>新規雇用情報履歴の追加</span>
+                            <button class="btn-primary" style="padding: 4px 12px; font-size: 0.8rem;" onclick="handleAddKoyou()">この内容で確定</button>
+                        </div>
+                        <div style="padding: 20px;">
+                            <table class="history-table">
+                                <tbody>
+                                    <tr>
+                                        <th class="hist-header">発令年月日</th>
+                                        <th class="hist-header">採用区分</th>
+                                        <th class="hist-header">拠点/グループ</th>
+                                        <th class="hist-header">役職/職名</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="position: relative; padding-right: 24px;">
+                                            <input type="text" class="input-full datepicker" id="input-koyou-date" placeholder="YYYY/MM/DD">
+                                            <svg class="icon-calendar" viewBox="0 0 24 24" style="width:14px; height:14px; right: 5px;"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                                        </td>
+                                        <td>
+                                            <select class="input-full" id="sel-koyou-kbn">
+                                                <option value="">（選択）</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select class="input-full" id="sel-koyou-dept">
+                                                <option value="">（選択）</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select class="input-full" id="sel-koyou-role">
+                                                <option value="">（選択）</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    <!-- Record 2 -->
-                    <div class="history-record">
-                        <table class="history-table">
-                            <colgroup>
-                                <col style="width: 9%;"><col style="width: 8%;"><col style="width: 17%;"><col style="width: 13%;"><col style="width: 14%;"><col style="width: 5%;"><col style="width: 6%;"><col style="width: 10%;"><col style="width: 9%;"><col style="width: 9%;">
-                            </colgroup>
-                            <tbody>
-                                <tr>
-                                    <th class="hist-header">発令日</th>
-                                    <th class="hist-header">採用区分</th>
-                                    <th class="hist-header">就業場所</th>
-                                    <th class="hist-header">業務内容</th>
-                                    <th class="hist-header">休憩時間</th>
-                                    <th class="hist-header" colspan="2">基本給</th>
-                                    <th class="hist-header">勤務日：パート</th>
-                                    <th class="hist-header">通勤手当：パート</th>
-                                    <th class="hist-header">社保加入状況</th>
-                                </tr>
-                                <tr>
-                                    <td>2025/4/1</td>
-                                    <td>パート</td>
-                                    <td>特別養護老人ホーム玉藻荘</td>
-                                    <td>介護補助業務</td>
-                                    <td>休憩時間60分</td>
-                                    <td style="border-right: none;">時給</td><td style="border-left: none;">1,110</td>
-                                    <td>週4日以内</td>
-                                    <td>有</td>
-                                    <td>厚生年金・健康</td>
-                                </tr>
-                                <tr>
-                                    <th class="hist-header" colspan="2">契約期間終了</th>
-                                    <th class="hist-header" colspan="2" style="background:#e5e5e5; border:none; border-bottom:1px solid #aaa;"></th>
-                                    <th class="hist-header">休日</th>
-                                    <th class="hist-header" colspan="2">賃金等級</th>
-                                    <th class="hist-header">業務手当</th>
-                                    <th class="hist-header">待機手当</th>
-                                    <th class="hist-header">夜勤手当</th>
-                                </tr>
-                                <tr>
-                                    <td style="border-right: none;">年度末</td><td style="border-left: none;">2026/03/31</td>
-                                    <td colspan="2" style="border-top: none;"></td>
-                                    <td>非定例日</td><td colspan="2"></td><td></td><td></td><td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table class="history-table" style="border-top: none;">
-                            <colgroup>
-                                <col style="width: 10%;"><col style="width: 8%;"><col style="width: 8%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;"><col style="width: 6.7%;">
-                            </colgroup>
-                            <tbody>
-                                <tr>
-                                    <th class="hist-header">雇用保険の適用</th>
-                                    <th class="hist-header">親睦会費</th>
-                                    <th class="hist-header">親睦会費2</th>
-                                    <th class="hist-header">時刻1</th>
-                                    <th class="hist-header">時刻2</th>
-                                    <th class="hist-header">時刻3</th>
-                                    <th class="hist-header">時刻4</th>
-                                    <th class="hist-header">時刻5</th>
-                                    <th class="hist-header">時刻6</th>
-                                    <th class="hist-header">時刻7</th>
-                                    <th class="hist-header">時刻8</th>
-                                    <th class="hist-header">時刻9</th>
-                                    <th class="hist-header">時刻10</th>
-                                    <th class="hist-header">時刻11</th>
-                                </tr>
-                                <tr>
-                                    <td>有</td><td></td><td>3,500</td><td>9:30</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                                </tr>
-                                <tr>
-                                    <th class="hist-header" colspan="2">始業就業時刻</th>
-                                    <td>その他固定</td>
-                                    <td>17:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <svg viewBox="0 0 24 24" class="trash-icon-hist"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    <div id="koyou-history-container" style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- JS でここにカードを生成します -->
                     </div>
                 </div>
 
@@ -1359,12 +1317,7 @@
                 <!-- 資格免許情報 Tab Content -->
                 <div id="tab-content-license" class="tab-content" style="padding: 24px 40px; background: #e5e5e5; min-height: 400px;">
                     
-                    <div style="display: flex; justify-content: flex-end; max-width: 900px; margin-bottom: 10px;">
-                        <button class="btn-license-edit" onclick="alert('編集モードに切り替えます。')">
-                            編集
-                            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                        </button>
-                    </div>
+                    <div style="height: 10px;"></div> <!-- Spacer -->
 
                     <table class="license-table">
                         <colgroup>
@@ -1388,16 +1341,25 @@
                         <tbody>
                             <tr>
                                 <td rowspan="2" style="background:#fff;"></td>
-                                <td></td>
-                                <td><svg class="icon-calendar" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg></td>
-                                <td rowspan="2"></td>
-                                <td></td>
-                                <td rowspan="2"></td>
+                                <td><input type="text" class="input-full" placeholder="区分"></td>
+                                <td style="position: relative; padding-right: 24px;">
+                                    <input type="text" class="input-full datepicker" placeholder="有効期限">
+                                    <svg class="icon-calendar" viewBox="0 0 24 24" style="width:14px; height:14px; right: 5px;"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                                </td>
+                                <td rowspan="2"><input type="text" class="input-full" placeholder="名称"></td>
+                                <td><input type="text" class="input-full" placeholder="番号"></td>
+                                <td rowspan="2"><input type="text" class="input-full" placeholder="備考"></td>
                             </tr>
                             <tr>
-                                <td><svg class="icon-calendar" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg></td>
-                                <td><svg class="icon-calendar" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg></td>
-                                <td><svg class="icon-file-blue" viewBox="0 0 24 24" onclick="alert('資格証明書ファイルをプレビュー表示します。')"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></td>
+                                <td style="position: relative; padding-right: 24px;">
+                                    <input type="text" class="input-full datepicker" placeholder="取得年月">
+                                    <svg class="icon-calendar" viewBox="0 0 24 24" style="width:14px; height:14px; right: 5px;"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                                </td>
+                                <td style="position: relative; padding-right: 24px;">
+                                    <input type="text" class="input-full datepicker" placeholder="更新年月">
+                                    <svg class="icon-calendar" viewBox="0 0 24 24" style="width:14px; height:14px; right: 5px;"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                                </td>
+                                <td><input type="text" class="input-full" placeholder="証明書"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1410,12 +1372,143 @@
 
                 </div>
                 
-                <div id="tab-dummy" class="tab-content" style="padding: 20px; text-align: center; color: #777; min-height: 250px;">
-                    このタブの内容はまだ登録されていません。
+                <!-- 勤怠情報 Tab Content -->
+                <div id="tab-content-kintai" class="tab-content" style="padding: 20px; background: #e5e5e5; min-height: 400px;">
+                    <!-- 所属勤怠入力セクションのみ -->
+                    <div>
+                        <div style="background-color: #005c8a; color: #fff; display: inline-block; padding: 4px 15px; border-radius: 4px 4px 0 0; font-size: 0.9rem; font-weight: bold; margin-bottom: -1px; position: relative; z-index: 1;">
+                            所属勤怠入力
+                        </div>
+                        <div class="data-table-container" style="border: 1px solid #005c8a; background: #fff; overflow-x: auto;">
+                            <table class="data-table kintai-history-table" style="min-width: 1400px; table-layout: fixed; border-collapse: collapse;">
+                                <colgroup>
+                                    <col style="width: 120px;"> <!-- 発令年月日 / 異動区分 -->
+                                    <col style="width: 160px;"> <!-- メイン -->
+                                    <col style="width: 160px;"> <!-- サブ1 -->
+                                    <col style="width: 160px;"> <!-- サブ2 -->
+                                    <col style="width: 160px;"> <!-- サブ3 -->
+                                    <col style="width: 160px;"> <!-- サブ4 -->
+                                    <col style="width: 160px;"> <!-- サブ5 -->
+                                    <col style="width: 160px;"> <!-- サブ6 -->
+                                    <col style="width: 160px;"> <!-- サブ7 -->
+                                    <col style="width: 50px;">  <!-- ゴミ箱 -->
+                                </colgroup>
+                                <thead style="background-color: #f2f2f2; color: #666;">
+                                    <tr style="height: 25px;">
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-bottom: none; padding: 4px 8px;">発令年月日</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-bottom: none; padding: 4px 8px;">メイン打刻グループ</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-bottom: none; padding: 4px 8px;">サブ打刻1グループ</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-bottom: none; padding: 4px 8px;">サブ打刻2グループ</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-bottom: none; padding: 4px 8px;">サブ打刻3グループ</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-bottom: none; padding: 4px 8px;">サブ打刻4グループ</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-bottom: none; padding: 4px 8px;">サブ打刻5グループ</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-bottom: none; padding: 4px 8px;">サブ打刻6グループ</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-bottom: none; padding: 4px 8px;">サブ打刻7グループ</th>
+                                        <th rowspan="2" style="border-left: 1px solid #ccc; background: #fff;"></th>
+                                    </tr>
+                                    <tr style="height: 25px;">
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-top: none; padding: 0 8px 4px 8px;">異動区分</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-top: none; padding: 0 8px 4px 8px;">メイン打刻ロール</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-top: none; padding: 0 8px 4px 8px;">サブ打刻1ロール</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-top: none; padding: 0 8px 4px 8px;">サブ打刻2ロール</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-top: none; padding: 0 8px 4px 8px;">サブ打刻3ロール</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-top: none; padding: 0 8px 4px 8px;">サブ打刻4ロール</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-top: none; padding: 0 8px 4px 8px;">サブ打刻5ロール</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-top: none; padding: 0 8px 4px 8px;">サブ打刻6ロール</th>
+                                        <th style="font-weight: normal; font-size: 0.7rem; border-top: none; padding: 0 8px 4px 8px;">サブ打刻7ロール</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Record 1 -->
+                                    <tr style="height: 60px;">
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="2026/01/01" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="さぬきの森事務所" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="勤怠管理者権限" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="さぬきの森デイ" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="勤怠管理者権限" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="さぬきの森医務" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="勤怠管理者権限" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="text-align: center; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; vertical-align: middle;">
+                                            <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:#92c4e0; cursor:pointer;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                        </td>
+                                    </tr>
+                                    <!-- Record 2 -->
+                                    <tr style="height: 60px;">
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="2025/06/16" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="さぬき養護・医務" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="勤怠管理者権限" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="さぬきケアハウス" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="グループ管理者権限" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="さぬきの森事務所" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="グループ管理者権限" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" value="玉藻荘ワーカー" style="height: 30px; border: none; padding-left: 8px;">
+                                            <input type="text" class="input-full" value="勤怠従業員権限" style="height: 29px; border: none; border-top: 1px solid #eee; padding-left: 8px;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="text-align: center; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; vertical-align: middle;">
+                                            <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:#92c4e0; cursor:pointer;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                        </td>
+                                    </tr>
+                                    <!-- Empty Row -->
+                                    <tr style="height: 60px;">
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;">
+                                            <input type="text" class="input-full" style="height: 30px; border: none;">
+                                            <input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;">
+                                        </td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="padding: 0; vertical-align: top; border-bottom: 1px solid #ccc;"><input type="text" class="input-full" style="height: 30px; border: none;"><input type="text" class="input-full" style="height: 29px; border: none; border-top: 1px solid #eee;"></td>
+                                        <td style="text-align: center; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; vertical-align: middle;">
+                                            <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:#92c4e0; cursor:pointer;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Floating Save Button -->
-                <button class="btn-save-floating" style="top: 80px; right: 20px;">追加</button>
+                <!-- Floating Action Buttons -->
+                <div class="floating-actions-container" style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                    <button class="btn-add-transfer-large" id="btn-add-floating" onclick="handleAddTransfer()">追加</button>
+                    <button class="btn-delete-transfer-large" id="btn-delete-floating" onclick="handleDeleteHistoryClick()" title="選択した履歴を削除">
+                        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1426,11 +1519,290 @@
         1 / 563
     </footer>
 
+    <!-- Custom System Dialog (Modal) -->
+    <div id="custom-dialog-overlay" class="dialog-overlay">
+        <div class="system-dialog">
+            <div class="dialog-header">
+                <span class="dialog-title">確認</span>
+                <span class="dialog-close-x" onclick="closeCustomDialog()">&times;</span>
+            </div>
+            <div class="dialog-content">
+                <div class="dialog-icon">⚠️</div>
+                <div class="dialog-message" id="dialog-message">選択した履歴データを削除しますか？</div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dialog-btn btn-cancel" onclick="closeCustomDialog()">キャンセル</button>
+                <button class="dialog-btn btn-ok" id="dialog-confirm-btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
     <script>
+        let currentEmpId = '301';
+        let navIds = { prev: null, next: null };
+
         let isSearchMode = false;
         function toggleSearchMode() {
             isSearchMode = !isSearchMode;
             document.body.classList.toggle('search-mode', isSearchMode);
+        }
+
+        /**
+         * 従業員データをロード
+         */
+        async function loadEmployee(id) {
+            if (!id) return;
+            try {
+                // app.js の Api ヘルパーを使用
+                const data = await Api.get(`/Employee/${id}`);
+                if (!data || !data.basic) {
+                    console.warn('従業員データが見つかりません');
+                    return;
+                }
+                
+                // UI表示更新
+                updateUI(data);
+                
+                currentEmpId = id;
+                await updateNav(id);
+            } catch (err) {
+                console.error('データ取得失敗:', err);
+                alert('サーバーからデータを取得できませんでした。APIが起動しているか確認してください。');
+            }
+        }
+
+        /**
+         * UI表示更新 (詳細版)
+         */
+        /**
+         * UI表示更新
+         */
+        function updateUI(data) {
+            const basic = data.basic;
+            if (!basic) return;
+
+            // 基本情報の表示
+            document.getElementById('display-emp-no').textContent = basic.社員番号;
+            document.getElementById('display-fullname').textContent = (basic.氏名_姓 || '') + '　' + (basic.氏名_名 || '');
+            document.getElementById('display-fullname-kana').textContent = (basic.氏名_姓_カナ || '') + '　' + (basic.氏名_名_カナ || '');
+            document.getElementById('display-postal').textContent = '〒 ' + (basic.郵便番号 || '');
+            document.getElementById('display-address').textContent = basic.住所 || '';
+            
+            const statusSpan = document.getElementById('display-status');
+            if (statusSpan) statusSpan.textContent = basic.在籍区分名称 || basic.在籍区分 || '';
+
+            const formatDate = (dateStr) => {
+                if (!dateStr || dateStr.startsWith('0001')) return '';
+                const d = new Date(dateStr);
+                return `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, '0')}月${String(d.getDate()).padStart(2, '0')}日`;
+            };
+            
+            document.getElementById('display-hire-date').textContent = formatDate(basic.入社年月日);
+            document.getElementById('display-retire-date').textContent = formatDate(basic.退社年月日);
+            
+            const retireBtn = document.getElementById('display-retire-btn');
+            if (retireBtn) {
+                retireBtn.style.display = (basic.退社年月日 && !basic.退社年月日.startsWith('0001')) ? 'block' : 'none';
+            }
+            
+            // 継続期間
+            if (basic.入社年月日) {
+                const start = new Date(basic.入社年月日);
+                const end = (basic.退社年月日 && !basic.退社年月日.startsWith('0001')) ? new Date(basic.退社年月日) : new Date();
+                let years = end.getFullYear() - start.getFullYear();
+                let months = end.getMonth() - start.getMonth();
+                if (months < 0) { years--; months += 12; }
+                document.getElementById('display-service-period').textContent = `${String(years).padStart(2, '0')}年${String(months).padStart(2, '0')}ヶ月`;
+            }
+
+            // --- 異動情報履歴のレンダリング ---
+            const interchangeBody = document.getElementById('interchange-history-body');
+            if (interchangeBody && data.transfer) {
+                interchangeBody.innerHTML = '';
+                data.transfer.forEach(t => {
+                    const row = document.createElement('tr');
+                    const date = t.異動発令日 ? t.異動発令日.substring(0, 10).replace(/-/g, '/') : '';
+                    row.style.cursor = 'pointer';
+                    row.onclick = () => selectHistoryRow(t.ID, 'transfer', row);
+                    row.innerHTML = `
+                        <td>${date}</td>
+                        <td>${t.異動区分名称 || t.異動区分 || ''}</td>
+                        <td>${t.異動内示名称 || t.異動内示 || ''}</td>
+                        <td>${t.発令内容_所属名称 || t.発令内容_所属 || ''}</td>
+                        <td>${t.発令内容_新雇用名称 || t.発令内容_新雇用 || ''}</td>
+                        <td>${t.発令内容_新役職名称 || t.発令内容_新役職 || ''}</td>
+                        <td>${t.発令内容_新職名名称 || t.発令内容_新職名 || ''}</td>
+                        <td>${t.発令内容_基本給 || ''}</td>
+                        <td>${t.発令内容_資格手当 || ''}</td>
+                    `;
+                    interchangeBody.appendChild(row);
+                });
+            }
+
+            // --- 雇用情報履歴のレンダリング ---
+            const koyouContainer = document.getElementById('koyou-history-container');
+            if (koyouContainer && data.koyou) {
+                koyouContainer.innerHTML = '';
+                data.koyou.forEach(k => {
+                    const date = k.発令年月日 ? k.発令年月日.substring(0, 10).replace(/-/g, '/') : '';
+                    const card = document.createElement('div');
+                    card.className = 'history-record';
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => selectHistoryRow(k.ID, 'koyou', card);
+                    card.innerHTML = `
+                        <table class="history-table">
+                            <tbody>
+                                <tr>
+                                    <th class="hist-header">発令日</th>
+                                    <th class="hist-header">採用区分</th>
+                                    <th class="hist-header">拠点/所属</th>
+                                    <th class="hist-header">役職/職名</th>
+                                </tr>
+                                <tr>
+                                    <td>${date}</td>
+                                    <td>${k.採用区分 || ''}</td>
+                                    <td>${k.メイン打刻グループ || ''}</td>
+                                    <td>${k.メイン打刻ロール || ''}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    `;
+                    koyouContainer.appendChild(card);
+                });
+            }
+
+            resetHistorySelection();
+            document.querySelector('.emp-footer').textContent = `社員番号: ${basic.社員番号} の詳細を表示中`;
+        }
+
+        /**
+         * 履歴選択状態の管理
+         */
+        let selectedHistoryId = null;
+        let selectedHistoryType = null;
+
+        function resetHistorySelection() {
+            selectedHistoryId = null;
+            selectedHistoryType = null;
+            document.querySelectorAll('.selected-row').forEach(r => r.classList.remove('selected-row'));
+            document.querySelectorAll('.selected-card').forEach(c => c.classList.remove('selected-card'));
+            const delBtn = document.getElementById('btn-delete-floating');
+            if (delBtn) delBtn.classList.remove('active');
+        }
+
+        function selectHistoryRow(id, type, el) {
+            resetHistorySelection();
+            selectedHistoryId = id;
+            selectedHistoryType = type;
+            el.classList.add(type === 'transfer' ? 'selected-row' : 'selected-card');
+            const delBtn = document.getElementById('btn-delete-floating');
+            if (delBtn) delBtn.classList.add('active');
+        }
+
+        /**
+         * 「ゴミ箱」ボタンクリック時
+         */
+        function handleDeleteHistoryClick() {
+            if (!selectedHistoryId) return;
+            const msg = selectedHistoryType === 'transfer' ? "異動情報履歴を削除しますか？" : "雇用情報履歴を削除しますか？";
+            const overlay = document.getElementById('custom-dialog-overlay');
+            const msgEl = document.getElementById('dialog-message');
+            if (msgEl) msgEl.textContent = msg;
+            overlay.classList.add('active');
+            
+            document.getElementById('dialog-confirm-btn').onclick = async () => {
+                overlay.classList.remove('active');
+                await executeDeleteHistory(selectedHistoryId, selectedHistoryType);
+            };
+        }
+
+        /**
+         * 汎用マスタ連動 (プルダウン設定)
+         */
+        async function setupMasterSelects() {
+            const masters = [
+                { id: 'sel-status', gid: 'ID09' },
+                { id: 'sel-transfer-kbn', gid: 'ID01' },
+                { id: 'sel-transfer-naiji', gid: 'ID02' },
+                { id: 'sel-transfer-dept', gid: 'ID03' },
+                { id: 'sel-transfer-koyou', gid: 'ID04' },
+                { id: 'sel-transfer-role', gid: 'ID05' },
+                { id: 'sel-transfer-title', gid: 'ID06' },
+                { id: 'sel-transfer-license', gid: 'ID10' },
+                // 雇用履歴用
+                { id: 'sel-koyou-kbn', gid: 'ID01' },
+                { id: 'sel-koyou-dept', gid: 'ID03' },
+                { id: 'sel-koyou-role', gid: 'ID05' }
+            ];
+
+            console.log("Loading master data...");
+            for (const m of masters) {
+                const el = document.getElementById(m.id);
+                if (!el) continue;
+                try {
+                    const items = await Api.get(`/Master/${m.gid}`);
+                    console.log(`Master ${m.gid} response:`, items);
+                    if (items && Array.isArray(items)) {
+                        const firstOption = el.options[0];
+                        el.innerHTML = '';
+                        if (m.gid !== 'ID09') {
+                            el.appendChild(firstOption);
+                        }
+                        items.forEach(item => {
+                            const opt = document.createElement('option');
+                            // Handle both casing (Dapper dynamic often preserves PascalCase)
+                            opt.value = item.code || item.Code;
+                            opt.textContent = item.name || item.Name;
+                            el.appendChild(opt);
+                        });
+                    }
+                } catch (e) {
+                    console.error(`Failed to load master ${m.gid}:`, e);
+                }
+            }
+        }
+
+        /**
+         * ナビゲーションID更新
+         */
+        async function updateNav(id) {
+            try {
+                const navData = await Api.get(`/Employee/nav/${id}`);
+                if (!navData) return;
+
+                navIds.prev = navData.prevId;
+                navIds.next = navData.nextId;
+
+                const btnPrev = document.getElementById('btn-prev');
+                const btnNext = document.getElementById('btn-next');
+
+                if (btnPrev) {
+                    if (navIds.prev) {
+                        btnPrev.style.opacity = '1';
+                        btnPrev.style.cursor = 'pointer';
+                        btnPrev.onclick = () => loadEmployee(navIds.prev);
+                    } else {
+                        btnPrev.style.opacity = '0.3';
+                        btnPrev.style.cursor = 'default';
+                        btnPrev.onclick = null;
+                    }
+                }
+
+                if (btnNext) {
+                    if (navIds.next) {
+                        btnNext.style.opacity = '1';
+                        btnNext.style.cursor = 'pointer';
+                        btnNext.onclick = () => loadEmployee(navIds.next);
+                    } else {
+                        btnNext.style.opacity = '0.3';
+                        btnNext.style.cursor = 'default';
+                        btnNext.onclick = null;
+                    }
+                }
+            } catch (err) {
+                console.error('ナビ取得失敗:', err);
+            }
         }
 
         // Tab Switching Logic
@@ -1451,6 +1823,17 @@
                 target.classList.add('active');
             }
             tabEl.classList.add('active');
+
+            // Toggle "Add" button visibility
+            const addBtn = document.getElementById('btn-add-floating');
+            if (addBtn) {
+                // 異動情報タブまたは雇用情報履歴タブのときだけ表示
+                if (contentId === 'tab-content-idou' || contentId === 'tab-content-history') {
+                    addBtn.parentElement.style.display = 'flex';
+                } else {
+                    addBtn.parentElement.style.display = 'none';
+                }
+            }
         }
 
         // Resume actions logic
@@ -1468,10 +1851,49 @@
             document.getElementById('resume-preview-status').style.color = '#ccc';
         }
 
+        // Record Management Actions
+        function createNewRecord() {
+            if (confirm("現在の表示をクリアして新規作成を開始しますか？")) {
+                // Clear inputs (simulation)
+                document.querySelectorAll('input').forEach(i => i.value = "");
+                document.querySelectorAll('.display-only').forEach(span => {
+                    if (span.tagName === 'SPAN' && span.parentElement.classList.contains('info-value')) {
+                       span.textContent = "";
+                    }
+                });
+                
+                // Switch to edit mode automatically
+                document.body.classList.add('edit-mode');
+                alert("新規作成モードに切り替わりました。情報を入力してください。");
+            }
+        }
+
+        function deleteRecord() {
+            const employeeName = document.querySelector('.kanji-name')?.textContent || "この従業員";
+            if (confirm(`本当に「${employeeName}」のデータを削除しますか？\nこの操作は取り消せません。`)) {
+                alert("データの削除が完了しました。");
+                location.reload(); // In dummy app, just reset state
+            }
+        }
+
         // Edit Mode Controls
         function startEditMode() {
             if (confirm("データの修正を開始しますか？")) {
                 document.body.classList.add('edit-mode');
+                
+                // Initialize floating button visibility based on the currently active tab
+                const activeTab = document.querySelector('.bottom-panel .tab.active');
+                if (activeTab) {
+                    const contentId = activeTab.getAttribute('onclick').match(/'([^']+)'/)[1];
+                    const addBtn = document.getElementById('btn-add-floating');
+                    if (addBtn) {
+                        if (contentId === 'tab-content-idou') {
+                            addBtn.parentElement.style.display = 'flex';
+                        } else {
+                            addBtn.parentElement.style.display = 'none';
+                        }
+                    }
+                }
             }
         }
         function exitEditMode(save) {
@@ -1486,6 +1908,97 @@
                 if (confirm("変更を破棄して編集を終了しますか？")) {
                     document.body.classList.remove('edit-mode');
                 }
+            }
+        }
+
+        /**
+         * 異動情報の追加実行
+         */
+        async function handleAddTransfer() {
+            const data = {
+                employeeId: currentEmpId,
+                date: document.getElementById('input-transfer-date').value,
+                kbn: document.getElementById('sel-transfer-kbn').value,
+                naiji: document.getElementById('sel-transfer-naiji').value,
+                dept: document.getElementById('sel-transfer-dept').value,
+                koyou: document.getElementById('sel-transfer-koyou').value,
+                role: document.getElementById('sel-transfer-role').value,
+                title: document.getElementById('sel-transfer-title').value,
+                basepay: document.getElementById('input-transfer-basepay').value,
+                license: document.getElementById('sel-transfer-license').value
+            };
+
+            if (!data.date || !data.kbn) {
+                showToast("異動発令日と異動区分は入力必須です", "error");
+                return;
+            }
+
+            try {
+                const res = await Api.post('/Employee/transfer', data);
+                if (res && res.success) {
+                    showToast("異動情報を追加しました", "success");
+                    loadEmployee(currentEmpId); // リロード
+                    // 入力欄をクリア
+                    document.getElementById('input-transfer-date').value = '';
+                    document.getElementById('input-transfer-basepay').value = '';
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("追加に失敗しました。サーバー側のエラーか入力項目の不足です。", "error");
+            }
+        }
+
+        /**
+         * 削除実行 (汎用)
+         */
+        async function executeDeleteHistory(id, type) {
+            const endpoint = (type === 'transfer') ? `/Employee/transfer/${id}` : `/Employee/koyou/${id}`;
+            try {
+                const res = await Api.delete(endpoint);
+                if (res && res.success) {
+                    showToast("削除が完了しました", "success");
+                    loadEmployee(currentEmpId);
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("削除に失敗しました", "error");
+            }
+        }
+
+        function closeCustomDialog() {
+            document.getElementById('custom-dialog-overlay').classList.remove('active');
+        }
+
+        /**
+         * 雇用情報の追加実行
+         */
+        async function handleAddKoyou() {
+            const dateInput = document.getElementById('input-koyou-date');
+            if (!dateInput) return;
+            const dateVal = dateInput.value;
+            const data = {
+                employeeId: currentEmpId,
+                date: dateVal,
+                kbn: document.getElementById('sel-koyou-kbn').value,
+                dept: document.getElementById('sel-koyou-dept').value,
+                role: document.getElementById('sel-koyou-role').value
+            };
+
+            if (!dateVal) {
+                showToast("発令年月日は入力必須です", "error");
+                return;
+            }
+
+            try {
+                const res = await Api.post('/Employee/koyou', data);
+                if (res && res.success) {
+                    showToast("雇用情報を追加しました", "success");
+                    loadEmployee(currentEmpId);
+                    dateInput.value = '';
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("追加に失敗しました", "error");
             }
         }
 
@@ -1505,32 +2018,39 @@
                     }
                     
                     if (input) {
-                        flatpickr(input, {
-                            dateFormat: "Y/m/d",
-                            allowInput: true,
-                            disableMobile: true,
-                            onOpen: function() {
-                                if (!document.body.classList.contains('edit-mode') && !document.body.classList.contains('search-mode')) {
-                                    this.close();
-                                    return false;
+                        try {
+                            flatpickr(input, {
+                                dateFormat: "Y/m/d",
+                                allowInput: true,
+                                disableMobile: true,
+                                onOpen: function() {
+                                    if (!document.body.classList.contains('edit-mode') && !document.body.classList.contains('search-mode')) {
+                                        this.close();
+                                        return false;
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        } catch (e) {
+                            console.warn("Flatpickr skip:", e);
+                        }
                         
                         // Handler for 8-digit date input (YYYYMMDD to YYYY/MM/DD)
-                        input.addEventListener('input', function() {
-                            let val = this.value.replace(/\D/g, '');
-                            if (val.length === 8) {
-                                let y = val.substring(0, 4);
-                                let m = val.substring(4, 6);
-                                let d = val.substring(6, 8);
-                                let formatted = `${y}/${m}/${d}`;
-                                this.value = formatted;
-                                if (this._flatpickr) {
-                                    this._flatpickr.setDate(formatted, false);
+                        // ONLY for inputs with .datepicker class to avoid affecting IDs or other numbers
+                        if (input.classList.contains('datepicker')) {
+                            input.addEventListener('input', function() {
+                                let val = this.value.replace(/\D/g, '');
+                                if (val.length === 8) {
+                                    let y = val.substring(0, 4);
+                                    let m = val.substring(4, 6);
+                                    let d = val.substring(6, 8);
+                                    let formatted = `${y}/${m}/${d}`;
+                                    this.value = formatted;
+                                    if (this._flatpickr) {
+                                        this._flatpickr.setDate(formatted, false);
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
                         
                         icon.style.cursor = 'pointer';
                         icon.addEventListener('click', function(e) {
@@ -1543,19 +2063,32 @@
                 });
             }, 500);
 
-            // Furigana Assist (Mock logic since we can't use full library easily)
-            const inputName = document.getElementById('input-name');
-            const inputKana = document.getElementById('input-kana');
-            if (inputName && inputKana) {
-                inputName.addEventListener('blur', function() {
-                    // Simulating furigana suggest if empty
-                    if (this.value === "十河 愛美" && inputKana.value === "") {
-                        inputKana.value = "ソゴウ マナミ";
-                    } else if (this.value.includes("佐藤") && inputKana.value === "") {
-                        inputKana.value = "サトウ";
-                    }
+            // Furigana Assist (AutoKana implementation)
+            if (typeof AutoKana !== 'undefined') {
+                const autokanaFamily = AutoKana.bind('#input-name-family', '#input-kana-family', { katakana: true });
+                const autokanaGiven = AutoKana.bind('#input-name-given', '#input-kana-given', { katakana: true });
+            }
+
+            // Employee No: Convert to half-width numbers on blur (avoids messing with IME during input)
+            const empNoInput = document.getElementById('input-emp-no');
+            if (empNoInput) {
+                empNoInput.addEventListener('blur', function() {
+                    // Convert full-width numbers to half-width
+                    let val = this.value.replace(/[０-９]/g, function(s) {
+                        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+                    });
+                    // Remove anything that isn't a digit and set it back
+                    this.value = val.replace(/\D/g, '');
                 });
             }
+            // Initial Load
+            (async () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id') || '301';
+                console.log("Starting initial data load for ID:", id);
+                await setupMasterSelects(); // Load master data for dropdowns
+                loadEmployee(id);
+            })();
         });
     </script>
 

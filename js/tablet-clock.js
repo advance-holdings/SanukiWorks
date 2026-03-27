@@ -63,25 +63,28 @@ function updateButtons(isWorking) {
     }
 }
 
-/**
- * タブレット出勤打刻
- */
 function handleTabletClockIn() {
     const member = JSON.parse(localStorage.getItem('selected_member'));
     const comment = document.getElementById('clockComment').value;
+    const facilityName = localStorage.getItem('selected_clock_group');
 
     if (CONFIG.USE_MOCK) {
         const result = MockData.clockIn(comment);
         if (result.success) {
-            showToast(`${member.name}さんの出勤を記録しました`, 'success');
-            // モックデータの状態を更新（実際はサーバー側で行う）
-            member.isWorking = true;
-            localStorage.setItem('selected_member', JSON.stringify(member));
-            updateButtons(true);
-            setTimeout(() => {
-                window.location.href = 'tablet-member-selection.html';
-            }, 1500);
+            finishClock(`${member.name}さんの出勤を記録しました`, true, member);
         }
+    } else {
+        Api.post('/attendance/clockin', {
+            employeeId: member.id,
+            comment: comment,
+            clockGroup: facilityName
+        }).then(result => {
+            if (result && result.success) {
+                finishClock(`${member.name}さんの出勤を記録しました`, true, member);
+            }
+        }).catch(err => {
+            showToast('打刻に失敗しました', 'error');
+        });
     }
 }
 
@@ -91,17 +94,34 @@ function handleTabletClockIn() {
 function handleTabletClockOut() {
     const member = JSON.parse(localStorage.getItem('selected_member'));
     const comment = document.getElementById('clockComment').value;
+    const facilityName = localStorage.getItem('selected_clock_group');
 
     if (CONFIG.USE_MOCK) {
         const result = MockData.clockOut(comment);
         if (result.success) {
-            showToast(`${member.name}さんの退勤を記録しました`, 'success');
-            member.isWorking = false;
-            localStorage.setItem('selected_member', JSON.stringify(member));
-            updateButtons(false);
-            setTimeout(() => {
-                window.location.href = 'tablet-member-selection.html';
-            }, 1500);
+            finishClock(`${member.name}さんの退勤を記録しました`, false, member);
         }
+    } else {
+        Api.post('/attendance/clockout', {
+            employeeId: member.id,
+            comment: comment,
+            clockGroup: facilityName
+        }).then(result => {
+            if (result && result.success) {
+                finishClock(`${member.name}さんの退勤を記録しました`, false, member);
+            }
+        }).catch(err => {
+            showToast('打刻に失敗しました', 'error');
+        });
     }
+}
+
+function finishClock(msg, isWorking, member) {
+    showToast(msg, 'success');
+    member.isWorking = isWorking;
+    localStorage.setItem('selected_member', JSON.stringify(member));
+    updateButtons(isWorking);
+    setTimeout(() => {
+        window.location.href = 'tablet-member-selection.html';
+    }, 1500);
 }

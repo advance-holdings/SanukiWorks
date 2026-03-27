@@ -3,17 +3,19 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    const facilityName = localStorage.getItem('selected_clock_group');
-    if (!facilityName) {
+    const baseId = localStorage.getItem('selected_base_id');
+    const baseName = localStorage.getItem('selected_base_name') || "メンバーを選択";
+    
+    if (!baseId) {
         window.location.href = 'tablet-selection.html';
         return;
     }
 
-    // ヘッダーの施設名更新
+    // ヘッダーの拠点名更新
     const nameEl = document.getElementById('selectedGroupName');
-    if (nameEl) nameEl.textContent = facilityName;
+    if (nameEl) nameEl.textContent = baseName;
 
-    loadMembers(facilityName);
+    loadMembers(baseId);
     startClock();
 });
 
@@ -44,65 +46,45 @@ function startClock() {
 
 /**
  * メンバー一覧を読み込み
- * @param {string} facilityName 
+ * @param {string} baseId 
  */
-function loadMembers(facilityName) {
+async function loadMembers(baseId) {
     const grid = document.getElementById('memberGrid');
     if (!grid) return;
 
-    const members = MockData.getFacilityMembers(facilityName);
-    grid.innerHTML = '';
+    try {
+        const members = await Api.get(`/attendance/members/base/${baseId}`);
+        grid.innerHTML = '';
 
-    members.forEach(member => {
-        const item = document.createElement('div');
-        item.className = 'selection-item';
-        item.style.position = 'relative';
-        item.onclick = () => selectMember(member);
+        members.forEach(member => {
+            const name = member.name || member.Name || "";
+            const id = member.id || member.Id || member.社員番号 || "";
+            
+            const item = document.createElement('div');
+            item.className = 'selection-item';
+            item.style.position = 'relative';
+            // 修正：メンバー情報（オブジェクト）を渡す
+            item.onclick = () => selectMember({ name, id });
 
-        const box = document.createElement('div');
-        box.className = 'selection-box';
-        box.style.marginBottom = '0';
-        box.style.aspectRatio = 'auto';
-        box.style.padding = '24px 10px';
-        box.style.fontSize = '1.8rem';
+            const box = document.createElement('div');
+            box.className = 'selection-box';
+            box.style.marginBottom = '0';
+            box.style.aspectRatio = 'auto';
+            box.style.padding = '24px 10px';
+            box.style.fontSize = '1.8rem';
 
-        // 勤務状態に応じた配色
-        if (member.isWorking) {
-            box.style.backgroundColor = '#e0e0e0'; // 灰色
-        } else {
-            box.style.backgroundColor = '#f8c9d9'; // ピンク
-        }
+            // 勤務状態に応じた配色
+            box.style.backgroundColor = '#f8c9d9'; // デフォルトはピンク
 
-        box.textContent = member.name;
-        item.appendChild(box);
+            box.textContent = name;
+            item.appendChild(box);
 
-        if (member.isWorking) {
-            const badge = document.createElement('div');
-            badge.className = 'working-stamp';
-            badge.style.position = 'absolute';
-            badge.style.bottom = '10px';
-            badge.style.right = '10px';
-            badge.style.border = '2px solid #a00';
-            badge.style.color = '#a00';
-            badge.style.borderRadius = '50%';
-            badge.style.width = '50px';
-            badge.style.height = '50px';
-            badge.style.display = 'flex';
-            badge.style.alignItems = 'center';
-            badge.style.justifyContent = 'center';
-            badge.style.padding = '0';
-            badge.style.fontSize = '0.9rem';
-            badge.style.fontWeight = 'bold';
-            badge.style.backgroundColor = '#fff';
-            badge.style.transform = 'rotate(15deg)';
-            badge.style.boxShadow = '2px 2px 4px rgba(0,0,0,0.1)';
-            badge.style.zIndex = '5';
-            badge.textContent = '勤務';
-            item.appendChild(badge);
-        }
-
-        grid.appendChild(item);
-    });
+            grid.appendChild(item);
+        });
+    } catch (err) {
+        console.error('メンバー一覧の取得に失敗:', err);
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">メンバーが取得できませんでした</p>';
+    }
 }
 
 /**

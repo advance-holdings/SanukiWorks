@@ -136,23 +136,46 @@
             background-color: #f5faff;
         }
 
-        /* Selected row style (based on the first row in screenshot) */
-        .account-table tbody tr.selected td {
-            background-color: #fff;
-            border-top: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
+        /* Selected row style - Improved visibility */
+        .account-table tbody tr.selected {
+            background-color: #e3f2fd !important;
+            border-left: 5px solid #0078a8;
         }
 
-        .account-table tbody tr.selected td:first-child {
-            border-left: 1px solid #ddd;
+        .account-table tbody tr.selected td {
+            color: #000;
+            font-weight: 500;
         }
-        .account-table tbody tr.selected td:last-child {
-            border-right: 1px solid #ddd;
+
+        .account-table tbody tr.selected .email-text {
+            color: #0078a8;
         }
 
         .email-text {
             font-size: 0.75rem;
             color: var(--text-light);
+        }
+
+        /* Search Mode - Master Style */
+        body.search-mode .account-header {
+            background-color: #b5e68d !important; /* Search Green */
+        }
+        
+        .search-row {
+            display: none;
+            background-color: #f0f9eb;
+        }
+        
+        body.search-mode .search-row {
+            display: table-row;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 4px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.85rem;
         }
 
     </style>
@@ -170,18 +193,18 @@
         </a>
         
         <div class="header-actions">
-            <!-- 検索/実行 -->
-            <div class="action-icon search-icon">
+            <!-- 検索/実行 (マスタ流トグル) -->
+            <div class="action-icon search-icon" id="btn-search-toggle" onclick="toggleSearchMode()">
                 <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16" y2="16"/></svg>
-                <span style="color: #0078a8; font-weight: bold;">検索/実行</span>
+                <span id="search-btn-label" style="color: #0078a8; font-weight: bold;">検索/実行</span>
             </div>
             <!-- 新規作成 -->
-            <div class="action-icon">
+            <div class="action-icon" onclick="showCreateModal()">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                 <span>新規作成</span>
             </div>
             <!-- 削除 -->
-            <div class="action-icon">
+            <div class="action-icon" onclick="handleDelete()">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                 <span>削除</span>
             </div>
@@ -200,192 +223,283 @@
                     <th>勤怠アカウント種別</th>
                     <th>メールアドレス</th>
                 </tr>
+                <!-- 検索プロンプト行 (従業員マスタ流) -->
+                <tr class="search-row">
+                    <td style="padding-left: 30px;"><input type="text" class="search-input" placeholder="ID検索" oninput="filterTable()"></td>
+                    <td><input type="text" id="search-code" class="search-input" placeholder="コード検索" oninput="filterTable()"></td>
+                    <td><input type="text" id="search-name" class="search-input" placeholder="名前検索" oninput="filterTable()"></td>
+                    <td></td>
+                    <td><input type="text" id="search-jinji" class="search-input" placeholder="種別検索" oninput="filterTable()"></td>
+                    <td><input type="text" id="search-kintai" class="search-input" placeholder="種別検索" oninput="filterTable()"></td>
+                    <td></td>
+                </tr>
             </thead>
             <tbody>
-                <!-- 行1: Selected -->
-                <tr class="selected">
-                    <td style="padding-left: 30px;">S000001</td>
-                    <td>1000105</td>
-                    <td>test太郎</td>
-                    <td>testtarou</td>
-                    <td>システム管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text">k-ishikawa@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000005</td>
-                    <td>1000104</td>
-                    <td>test次郎</td>
-                    <td>testjirou</td>
-                    <td>管理者</td>
-                    <td>グループ管理者</td>
-                    <td class="email-text">k-ishikawa@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000010</td>
-                    <td>1000103</td>
-                    <td>test三郎</td>
-                    <td>testsaburou</td>
-                    <td>管理者閲覧制限</td>
-                    <td>勤怠従業員権限</td>
-                    <td class="email-text">k-ishikawa@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000011</td>
-                    <td>508</td>
-                    <td>宮本 一仁</td>
-                    <td>sanuki0508</td>
-                    <td>システム管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text">k-miyamoto@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000013</td>
-                    <td>24</td>
-                    <td>三好 晃弘</td>
-                    <td>sanuki0024</td>
-                    <td>システム管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text">a-miyoshi@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000014</td>
-                    <td>18</td>
-                    <td>池田 博子</td>
-                    <td>sanuki0018</td>
-                    <td>システム管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text">h-ikeda@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000015</td>
-                    <td>77</td>
-                    <td>高岡 優子</td>
-                    <td>sanuki0077</td>
-                    <td>システム管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text">y-takaoka@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000016</td>
-                    <td>1303</td>
-                    <td>田中 元</td>
-                    <td>sanuki1303</td>
-                    <td>システム管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text">h-tanaka@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000017</td>
-                    <td>157</td>
-                    <td>武田 順子</td>
-                    <td>sanuki0157</td>
-                    <td>管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text">j-takeda@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000018</td>
-                    <td>368</td>
-                    <td>渡辺 直美</td>
-                    <td>sanuki0368</td>
-                    <td>管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text">n-watanabe@sanuki-sha.or.jp</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000019</td>
-                    <td>337</td>
-                    <td>広瀬 敬</td>
-                    <td>337337</td>
-                    <td>管理者閲覧制限</td>
-                    <td>全体管理者</td>
-                    <td class="email-text"></td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000020</td>
-                    <td>1298</td>
-                    <td>松本 静</td>
-                    <td>12981298</td>
-                    <td>権限無</td>
-                    <td>一般ユーザー</td>
-                    <td class="email-text"></td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000021</td>
-                    <td>661</td>
-                    <td>溝淵 明恵</td>
-                    <td>661661</td>
-                    <td>権限無</td>
-                    <td>一般ユーザー</td>
-                    <td class="email-text"></td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000022</td>
-                    <td>1002</td>
-                    <td>藤崎 一憲</td>
-                    <td>10021002</td>
-                    <td>権限無</td>
-                    <td>一般ユーザー</td>
-                    <td class="email-text"></td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000023</td>
-                    <td>1011</td>
-                    <td>中尾 ちなみ</td>
-                    <td>10111011</td>
-                    <td>権限無</td>
-                    <td>一般ユーザー</td>
-                    <td class="email-text"></td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000024</td>
-                    <td>489</td>
-                    <td>松下 英行</td>
-                    <td>489489</td>
-                    <td>管理者閲覧制限</td>
-                    <td>全体管理者</td>
-                    <td class="email-text"></td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000025</td>
-                    <td>admin</td>
-                    <td>フル権限</td>
-                    <td>admin</td>
-                    <td>システム管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text"></td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000026</td>
-                    <td>1332</td>
-                    <td>ブイティ ファン</td>
-                    <td>13321332</td>
-                    <td>管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text"></td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000027</td>
-                    <td>1000232</td>
-                    <td>管理者</td>
-                    <td>Kouiki01</td>
-                    <td>システム管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text"></td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 30px;">S000028</td>
-                    <td>admin</td>
-                    <td>管理者</td>
-                    <td>01230123</td>
-                    <td>システム管理者</td>
-                    <td>全体管理者</td>
-                    <td class="email-text"></td>
-                </tr>
+                <!-- ここに動的にデータが挿入されます -->
             </tbody>
         </table>
     </main>
 
+    <!-- 新規作成モーダル -->
+    <div id="create-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:12px; width:450px; box-shadow:0 15px 35px rgba(0,0,0,0.3); border:1px solid #ddd;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="font-size:1.3rem; border-left:6px solid var(--primary-blue); padding-left:12px; color:#333; margin:0;">新規アカウント登録</h2>
+                <span id="form-msg" style="font-size:0.75rem; color:#d32f2f; font-weight:bold;">※必須項目があります</span>
+            </div>
+            
+            <style>
+                .form-input-group label { display:block; font-size:0.85rem; color:#555; margin-bottom:6px; font-weight:500; }
+                .form-input-group label span { color:#d32f2f; margin-left:4px; font-size:0.7rem; background:#fee; padding:1px 4px; border-radius:2px; }
+                .form-input-group input, .form-input-group select { width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem; transition:border-color 0.2s; }
+                .form-input-group input:focus { border-color:var(--primary-blue); outline:none; background:#f9fbff; }
+                .btn-create-submit { padding:10px 25px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 10px rgba(0,120,168,0.2); }
+                .btn-create-submit.disabled { background:#ccc; color:#fff; cursor:not-allowed; box-shadow:none; transform:scale(0.98); opacity:0.7; }
+                .btn-create-submit.active { background:linear-gradient(135deg, #0078a8, #00567a); color:white; transform:scale(1.05); box-shadow:0 6px 15px rgba(0,120,168,0.4); }
+                .btn-create-submit.active:hover { transform:translateY(-2px); filter:brightness(1.1); }
+            </style>
+
+            <div style="display:flex; flex-direction:column; gap:18px;">
+                <div class="form-input-group">
+                    <label>アカウントコード <span>必須</span></label>
+                    <input type="text" id="new-code" placeholder="例: yamada01" autocomplete="off" oninput="validateForm()">
+                </div>
+                <div class="form-input-group">
+                    <label>アカウント名 <span>必須</span></label>
+                    <input type="text" id="new-name" placeholder="例: 山田 花子" autocomplete="off" oninput="validateForm()">
+                </div>
+                <div class="form-input-group">
+                    <label>パスワード <span>必須</span></label>
+                    <input type="password" id="new-pass" placeholder="・・・・・・・・" oninput="validateForm()">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div class="form-input-group">
+                        <label>人事アカウント種別</label>
+                        <select id="new-jinji">
+                            <option value="システム管理者">システム管理者</option>
+                            <option value="管理者">管理者</option>
+                            <option value="管理者閲覧制限">管理者閲覧制限</option>
+                            <option value="権限無" selected>権限無</option>
+                        </select>
+                    </div>
+                    <div class="form-input-group">
+                        <label>勤怠アカウント種別</label>
+                        <select id="new-kintai">
+                            <option value="全体管理者">全体管理者</option>
+                            <option value="グループ管理者">グループ管理者</option>
+                            <option value="勤怠従業員権限">勤怠従業員権限</option>
+                            <option value="一般ユーザー" selected>一般ユーザー</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-input-group">
+                    <label>メールアドレス <small style="color:#999; font-weight:normal;">(任意)</small></label>
+                    <input type="email" id="new-email" placeholder="example@sanuki-sha.or.jp" oninput="validateForm()">
+                </div>
+                
+                <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:15px; border-top:1px solid #eee; padding-top:20px;">
+                    <button onclick="closeCreateModal()" style="padding:10px 20px; border:1px solid #ccc; background:white; color:#666; border-radius:6px; cursor:pointer;">キャンセル</button>
+                    <button id="submit-btn" onclick="handleCreate()" class="btn-create-submit disabled" disabled>登録する</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        let selectedRecordId = null;
+        let originalUsers = []; // 全データを保持
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadAccountList();
+        });
+
+        /**
+         * フォームのバリデーション (リアルタイム反映)
+         */
+        function validateForm() {
+            const code = document.getElementById('new-code').value.trim();
+            const name = document.getElementById('new-name').value.trim();
+            const pass = document.getElementById('new-pass').value.trim();
+            const btn = document.getElementById('submit-btn');
+            const msg = document.getElementById('form-msg');
+
+            if (code && name && pass) {
+                btn.disabled = false;
+                btn.classList.add('active');
+                btn.classList.remove('disabled');
+                msg.textContent = '準備完了！';
+                msg.style.color = '#2e7d32';
+            } else {
+                btn.disabled = true;
+                btn.classList.add('disabled');
+                btn.classList.remove('active');
+                msg.textContent = '※必須項目があります';
+                msg.style.color = '#d32f2f';
+            }
+        }
+
+        /**
+         * アカウント一覧をロード
+         */
+        async function loadAccountList() {
+            const tbody = document.querySelector('.account-table tbody');
+            try {
+                // APIからデータを取得
+                const users = await Api.get('/Admin/users');
+                originalUsers = users || []; // フィルター用に保存
+                
+                renderTable(originalUsers);
+            } catch (err) {
+                console.error('アカウント取得失敗:', err);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: red; padding: 20px;">データの読み込みに失敗しました</td></tr>';
+            }
+        }
+
+        /**
+         * テーブルを描画
+         */
+        function renderTable(users) {
+            const tbody = document.querySelector('.account-table tbody');
+            tbody.innerHTML = '';
+            selectedRecordId = null;
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; color:#999;">データがありません</td></tr>`;
+                return;
+            }
+
+            users.forEach(user => {
+                const recordNo = user.recordNo || user.RecordNo || "";
+                const accountCode = user.accountCode || user.AccountCode || "";
+                const accountName = user.accountName || user.AccountName || "";
+                const password = user.password || user.Password || "";
+                const jinjiRole = user.jinjiRole || user.JinjiRole || "";
+                const kintaiRole = user.kintaiRole || user.KintaiRole || "";
+                const email = user.email || user.Email || "";
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding-left: 30px;">${recordNo}</td>
+                    <td>${accountCode}</td>
+                    <td>${accountName}</td>
+                    <td>${password}</td>
+                    <td>${jinjiRole}</td>
+                    <td>${kintaiRole}</td>
+                    <td class="email-text">${email}</td>
+                `;
+                
+                tr.addEventListener('click', () => {
+                    document.querySelectorAll('.account-table tbody tr').forEach(r => r.classList.remove('selected'));
+                    tr.classList.add('selected');
+                    selectedRecordId = recordNo;
+                });
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        /**
+         * 検索モードの切り替え (従業員マスタ流)
+         */
+        function toggleSearchMode() {
+            const isSearch = document.body.classList.toggle('search-mode');
+            const btnLabel = document.getElementById('search-btn-label');
+            
+            if (isSearch) {
+                btnLabel.textContent = '検索終了';
+                btnLabel.style.color = '#2e7d32'; // 検索中は緑
+            } else {
+                btnLabel.textContent = '検索/実行';
+                btnLabel.style.color = '#0078a8';
+                // 検索解除時は全表示に戻す
+                document.querySelectorAll('.search-input').forEach(i => i.value = '');
+                renderTable(originalUsers);
+            }
+        }
+
+        /**
+         * 表のリアルタイムフィルタリング
+         */
+        function filterTable() {
+            const idQuery = document.querySelector('.search-row input[placeholder="ID検索"]').value.toLowerCase();
+            const codeQuery = document.getElementById('search-code').value.toLowerCase();
+            const nameQuery = document.getElementById('search-name').value.toLowerCase();
+            const jinjiQuery = document.getElementById('search-jinji').value.toLowerCase();
+            const kintaiQuery = document.getElementById('search-kintai').value.toLowerCase();
+
+            const filtered = originalUsers.filter(u => {
+                const recordNo = (u.recordNo || u.RecordNo || "").toLowerCase();
+                const accountCode = (u.accountCode || u.AccountCode || "").toLowerCase();
+                const accountName = (u.accountName || u.AccountName || "").toLowerCase();
+                const jinjiRole = (u.jinjiRole || u.JinjiRole || "").toLowerCase();
+                const kintaiRole = (u.kintaiRole || u.KintaiRole || "").toLowerCase();
+
+                return recordNo.includes(idQuery) &&
+                       accountCode.includes(codeQuery) &&
+                       accountName.includes(nameQuery) &&
+                       jinjiRole.includes(jinjiQuery) &&
+                       kintaiRole.includes(kintaiQuery);
+            });
+
+            renderTable(filtered);
+        }
+
+        /**
+         * 新規作成モーダル
+         */
+        function showCreateModal() {
+            document.getElementById('create-modal').style.display = 'flex';
+        }
+
+        function closeCreateModal() {
+            document.getElementById('create-modal').style.display = 'none';
+        }
+
+        async function handleCreate() {
+            const data = {
+                accountCode: document.getElementById('new-code').value,
+                accountName: document.getElementById('new-name').value,
+                password: document.getElementById('new-pass').value,
+                jinjiRole: document.getElementById('new-jinji').value,
+                kintaiRole: document.getElementById('new-kintai').value,
+                email: document.getElementById('new-email').value
+            };
+
+            if (!data.accountCode || !data.accountName || !data.password) {
+                alert('アカウントコード、アカウント名、パスワードは必須です');
+                return;
+            }
+
+            try {
+                await Api.post('/Admin/create', data);
+                alert('登録が完了しました');
+                closeCreateModal();
+                await loadAccountList();
+            } catch (err) {
+                alert('登録に失敗しました: ' + err.message);
+            }
+        }
+
+        /**
+         * 削除処理
+         */
+        async function handleDelete() {
+            if (!selectedRecordId) {
+                alert('削除するデータを選択してください');
+                return;
+            }
+
+            if (confirm('選択したデータを削除してもよろしいですか？')) {
+                try {
+                    await Api.delete(`/Admin/delete/${selectedRecordId}`);
+                    alert('削除しました');
+                    await loadAccountList();
+                } catch (err) {
+                    alert('削除に失敗しました: ' + err.message);
+                }
+            }
+        }
+    </script>
 </body>
 </html>

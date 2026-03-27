@@ -7,8 +7,9 @@
 // 設定
 // ==========================
 const CONFIG = {
-  API_BASE_URL: '/api', // ASP.NET Web API のベースURL（本番時に変更）
-  USE_MOCK: true,       // モックデータ使用フラグ（FileMaker連携前はtrue）
+  // アクセス元のホスト名（localhostやIPアドレス）に合わせてAPIサーバーのURLを設定
+  API_BASE_URL: `http://${window.location.hostname}:5163/api`,
+  USE_MOCK: false,
 };
 
 // ==========================
@@ -100,6 +101,13 @@ const Api = {
   },
 
   /**
+   * DELETEリクエスト
+   */
+  async delete(endpoint, body = null) {
+    return this._request('DELETE', endpoint, body);
+  },
+
+  /**
    * 内部リクエスト処理
    */
   async _request(method, endpoint, body = null) {
@@ -135,6 +143,13 @@ const Api = {
       console.error('API通信エラー:', error);
       throw error;
     }
+  },
+
+  /**
+   * 現在のログインユーザー情報を取得
+   */
+  getCurrentUser() {
+    return Auth.getUser();
   }
 };
 

@@ -42,29 +42,20 @@
 
         <!-- Right: Form -->
         <div class="login-right">
-          <!-- 打刻グループ -->
+          <!-- アカウントコード -->
           <div class="form-group">
-            <label>打刻グループ</label>
-            <input type="text" class="form-input" id="clockGroup" placeholder="">
-          </div>
-
-          <!-- 社員番号 -->
-          <div class="form-group">
-            <input type="text" class="form-input" id="employeeId" placeholder=""
-              style="text-align: center; font-size: 1.1rem;">
+            <label>アカウントコード</label>
+            <input type="text" class="form-input" id="employeeId" placeholder="アカウントコードを入力"
+              style="text-align: center; font-size: 1.1rem; background-color: #f9f9f9; border: 1px solid #ccc;"
+              autocomplete="off">
+            <div id="accountDisplayName" style="margin-top: 8px; font-weight: bold; color: #2e7d32; min-height: 1.2em; text-align: center;"></div>
           </div>
 
           <!-- 出勤・退勤ボタン -->
-          <div class="clock-buttons">
+          <div class="clock-buttons" style="margin-top: 20px;">
             <button class="btn btn-pink" id="btnClockIn" onclick="handleClockIn()">出勤</button>
             <button class="btn btn-pink" id="btnClockOut" onclick="handleClockOut()"
               style="background-color: #d5d5d5;">退勤</button>
-          </div>
-
-          <!-- コメント -->
-          <div class="form-group">
-            <label>コメント</label>
-            <input type="text" class="form-input" id="clockComment" placeholder="打刻コメント">
           </div>
 
           <!-- パスワード -->
